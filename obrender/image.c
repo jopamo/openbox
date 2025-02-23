@@ -73,7 +73,7 @@ static RrImagePic* RrImagePicNew(gint w, gint h, RrPixel32 *data)
     RrImagePic *pic;
 
     pic = g_slice_new(RrImagePic);
-    RrImagePicInit(pic, w, h, g_memdup(data, w*h*sizeof(RrPixel32)));
+    RrImagePicInit(pic, w, h, g_memdup2(data, w*h*sizeof(RrPixel32)));
     return pic;
 }
 
