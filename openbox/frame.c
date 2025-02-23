@@ -418,7 +418,7 @@ void frame_adjust_area(ObFrame *self, gboolean moved,
             if (self->cbwidth_l && innercornerheight > 0) {
                 XMoveResizeWindow(obt_display, self->innerbll,
                                   0,
-                                  self->client->area.height - 
+                                  self->client->area.height -
                                   (ob_rr_theme->grip_width -
                                    self->size.bottom),
                                   self->cbwidth_l,
@@ -441,7 +441,7 @@ void frame_adjust_area(ObFrame *self, gboolean moved,
             if (self->cbwidth_r && innercornerheight > 0) {
                 XMoveResizeWindow(obt_display, self->innerbrr,
                                   0,
-                                  self->client->area.height - 
+                                  self->client->area.height -
                                   (ob_rr_theme->grip_width -
                                    self->size.bottom),
                                   self->cbwidth_r,
@@ -1670,18 +1670,17 @@ static void flash_done(gpointer data)
 static gboolean flash_timeout(gpointer data)
 {
     ObFrame *self = data;
-    GTimeVal now;
+    GDateTime *now = g_date_time_new_now_utc();
 
-    g_get_current_time(&now);
-    if (now.tv_sec > self->flash_end.tv_sec ||
-        (now.tv_sec == self->flash_end.tv_sec &&
-         now.tv_usec >= self->flash_end.tv_usec))
+    if (g_date_time_compare(now, self->flash_end) >= 0) {
         self->flashing = FALSE;
+    }
 
     if (!self->flashing) {
         if (self->focused != self->flash_on)
             frame_adjust_focus(self, self->focused);
 
+        g_date_time_unref(now);  // Free memory
         return FALSE; /* we are done */
     }
 
@@ -1691,6 +1690,7 @@ static gboolean flash_timeout(gpointer data)
         self->focused = FALSE;
     }
 
+    g_date_time_unref(now);  // Free memory
     return TRUE; /* go again */
 }
 
@@ -1698,12 +1698,14 @@ void frame_flash_start(ObFrame *self)
 {
     self->flash_on = self->focused;
 
-    if (!self->flashing)
+    if (!self->flashing) {
         self->flash_timer = g_timeout_add_full(G_PRIORITY_DEFAULT,
                                                600, flash_timeout, self,
                                                flash_done);
-    g_get_current_time(&self->flash_end);
-    g_time_val_add(&self->flash_end, G_USEC_PER_SEC * 5);
+    }
+
+    self->flash_end = g_date_time_new_now_utc();  // Initialize GDateTime
+    self->flash_end = g_date_time_add_seconds(self->flash_end, 5); // Add 5 seconds
 
     self->flashing = TRUE;
 }
@@ -1711,20 +1713,13 @@ void frame_flash_start(ObFrame *self)
 void frame_flash_stop(ObFrame *self)
 {
     self->flashing = FALSE;
+    g_date_time_unref(self->flash_end);  // Free the memory
 }
 
-static gulong frame_animate_iconify_time_left(ObFrame *self,
-                                              const GTimeVal *now)
+static gulong frame_animate_iconify_time_left(ObFrame *self, const GDateTime *now)
 {
-    glong sec, usec;
-    sec = self->iconify_animation_end.tv_sec - now->tv_sec;
-    usec = self->iconify_animation_end.tv_usec - now->tv_usec;
-    if (usec < 0) {
-        usec += G_USEC_PER_SEC;
-        sec--;
-    }
-    /* no negative values */
-    return MAX(sec * G_USEC_PER_SEC + usec, 0);
+    GTimeSpan time_left = g_date_time_difference(now, self->iconify_animation_end);
+    return MAX(time_left / G_USEC_PER_SEC, 0);
 }
 
 static gboolean frame_animate_iconify(gpointer p)
@@ -1732,15 +1727,10 @@ static gboolean frame_animate_iconify(gpointer p)
     ObFrame *self = p;
     gint x, y, w, h;
     gint iconx, icony, iconw;
-    GTimeVal now;
-    gulong time;
     gboolean iconifying;
 
     if (self->client->icon_geometry.width == 0) {
-        /* there is no icon geometry set so just go straight down */
-        const Rect *a;
-
-        a = screen_physical_area_monitor(screen_find_monitor(&self->area));
+        const Rect *a = screen_physical_area_monitor(screen_find_monitor(&self->area));
         iconx = self->area.x + self->area.width / 2 + 32;
         icony = a->y + a->width;
         iconw = 64;
@@ -1752,18 +1742,15 @@ static gboolean frame_animate_iconify(gpointer p)
 
     iconifying = self->iconify_animation_going > 0;
 
-    /* how far do we have left to go ? */
-    g_get_current_time(&now);
-    time = frame_animate_iconify_time_left(self, &now);
+    GDateTime *now = g_date_time_new_now_utc(); // Current time
+    gulong time = frame_animate_iconify_time_left(self, now);
 
     if ((time > 0 && iconifying) || (time == 0 && !iconifying)) {
-        /* start where the frame is supposed to be */
         x = self->area.x;
         y = self->area.y;
         w = self->area.width;
         h = self->area.height;
     } else {
-        /* start at the icon */
         x = iconx;
         y = icony;
         w = iconw;
@@ -1771,16 +1758,17 @@ static gboolean frame_animate_iconify(gpointer p)
     }
 
     if (time > 0) {
-        glong dx, dy, dw;
-        glong elapsed;
+        glong dx = self->area.x - iconx;
+        glong dy = self->area.y - icony;
+        glong dw = self->area.width - self->bwidth * 2 - iconw;
 
-        dx = self->area.x - iconx;
-        dy = self->area.y - icony;
-        dw = self->area.width - self->bwidth * 2 - iconw;
-         /* if restoring, we move in the opposite direction */
-        if (!iconifying) { dx = -dx; dy = -dy; dw = -dw; }
+        if (!iconifying) {
+            dx = -dx;
+            dy = -dy;
+            dw = -dw;
+        }
 
-        elapsed = FRAME_ANIMATE_ICONIFY_TIME - time;
+        glong elapsed = FRAME_ANIMATE_ICONIFY_TIME - time;
         x = x - (dx * elapsed) / FRAME_ANIMATE_ICONIFY_TIME;
         y = y - (dy * elapsed) / FRAME_ANIMATE_ICONIFY_TIME;
         w = w - (dw * elapsed) / FRAME_ANIMATE_ICONIFY_TIME;
@@ -1790,34 +1778,27 @@ static gboolean frame_animate_iconify(gpointer p)
     XMoveResizeWindow(obt_display, self->window, x, y, w, h);
     XFlush(obt_display);
 
+    g_date_time_unref(now); // Free memory
+
     return time > 0; /* repeat until we're out of time */
 }
 
 void frame_end_iconify_animation(gpointer data)
 {
     ObFrame *self = data;
-    /* see if there is an animation going */
     if (self->iconify_animation_going == 0) return;
 
     if (!self->visible)
         XUnmapWindow(obt_display, self->window);
     else {
-        /* Send a ConfigureNotify when the animation is done, this fixes
-           KDE's pager showing the window in the wrong place.  since the
-           window is mapped at a different location and is then moved, we
-           need to send the synthetic configurenotify, since apps may have
-           read the position when the client mapped, apparently. */
-        client_reconfigure(self->client, TRUE);
+        client_reconfigure(self->client, TRUE); // Send ConfigureNotify
     }
 
-    /* we're not animating any more ! */
     self->iconify_animation_going = 0;
     self->iconify_animation_timer = 0;
 
-    XMoveResizeWindow(obt_display, self->window,
-                      self->area.x, self->area.y,
+    XMoveResizeWindow(obt_display, self->window, self->area.x, self->area.y,
                       self->area.width, self->area.height);
-    /* we delay re-rendering until after we're done animating */
     framerender_frame(self);
     XFlush(obt_display);
 }
@@ -1827,51 +1808,44 @@ void frame_begin_iconify_animation(ObFrame *self, gboolean iconifying)
     gulong time;
     gboolean new_anim = FALSE;
     gboolean set_end = TRUE;
-    GTimeVal now;
 
-    /* if there is no titlebar, just don't animate for now
-       XXX it would be nice tho.. */
     if (!(self->decorations & OB_FRAME_DECOR_TITLEBAR))
         return;
 
-    /* get the current time */
-    g_get_current_time(&now);
-
-    /* get how long until the end */
     time = FRAME_ANIMATE_ICONIFY_TIME;
+    GDateTime *now = g_date_time_new_now_utc();
+
     if (self->iconify_animation_going) {
         if (!!iconifying != (self->iconify_animation_going > 0)) {
-            /* animation was already going on in the opposite direction */
-            time = time - frame_animate_iconify_time_left(self, &now);
-        } else
-            /* animation was already going in the same direction */
+            time = time - frame_animate_iconify_time_left(self, now);
+        } else {
             set_end = FALSE;
-    } else
+        }
+    } else {
         new_anim = TRUE;
+    }
+
     self->iconify_animation_going = iconifying ? 1 : -1;
 
-    /* set the ending time */
     if (set_end) {
-        self->iconify_animation_end.tv_sec = now.tv_sec;
-        self->iconify_animation_end.tv_usec = now.tv_usec;
-        g_time_val_add(&self->iconify_animation_end, time);
+        g_date_time_unref(self->iconify_animation_end);  // Free old time
+        self->iconify_animation_end = g_date_time_new_now_utc(); // Initialize
+        self->iconify_animation_end = g_date_time_add_seconds(self->iconify_animation_end, time);
     }
 
     if (new_anim) {
         if (self->iconify_animation_timer)
             g_source_remove(self->iconify_animation_timer);
-        self->iconify_animation_timer =
-            g_timeout_add_full(G_PRIORITY_DEFAULT,
-                               FRAME_ANIMATE_ICONIFY_STEP_TIME,
-                               frame_animate_iconify, self,
-                               frame_end_iconify_animation);
-                               
+        self->iconify_animation_timer = g_timeout_add_full(G_PRIORITY_DEFAULT,
+                                                           FRAME_ANIMATE_ICONIFY_STEP_TIME,
+                                                           frame_animate_iconify, self,
+                                                           frame_end_iconify_animation);
 
-        /* do the first step */
         frame_animate_iconify(self);
 
-        /* show it during the animation even if it is not "visible" */
         if (!self->visible)
             XMapWindow(obt_display, self->window);
     }
+
+    g_date_time_unref(now); // Free memory
 }
