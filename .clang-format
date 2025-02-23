@@ -1,0 +1,11 @@
+BasedOnStyle: Google
+IndentWidth: 2
+ContinuationIndentWidth: 2
+UseTab: Never
+ColumnLimit: 120
+
+SpacesInParentheses: true
+SpaceBeforeParens: ControlStatements
+
+AlignAfterOpenBracket: true
+AlignConsecutiveAssignments: true

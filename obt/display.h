@@ -20,22 +20,21 @@
 #define __obt_display_h
 
 #include <X11/Xlib.h>
-#include <glib.h>
-
 #include <X11/Xutil.h> /* shape.h uses Region which is in here */
-#ifdef    XKB
+#include <glib.h>
+#ifdef XKB
 #include <X11/XKBlib.h>
 #endif
-#ifdef    SHAPE
+#ifdef SHAPE
 #include <X11/extensions/shape.h>
 #endif
-#ifdef    XINERAMA
+#ifdef XINERAMA
 #include <X11/extensions/Xinerama.h>
 #endif
-#ifdef    XRANDR
+#ifdef XRANDR
 #include <X11/extensions/Xrandr.h>
 #endif
-#ifdef    SYNC
+#ifdef SYNC
 #include <X11/extensions/sync.h>
 #endif
 
@@ -44,26 +43,26 @@ G_BEGIN_DECLS
 extern gboolean obt_display_error_occured;
 
 extern gboolean obt_display_extension_xkb;
-extern gint     obt_display_extension_xkb_basep;
+extern gint obt_display_extension_xkb_basep;
 extern gboolean obt_display_extension_shape;
-extern gint     obt_display_extension_shape_basep;
+extern gint obt_display_extension_shape_basep;
 extern gboolean obt_display_extension_xinerama;
-extern gint     obt_display_extension_xinerama_basep;
+extern gint obt_display_extension_xinerama_basep;
 extern gboolean obt_display_extension_randr;
-extern gint     obt_display_extension_randr_basep;
+extern gint obt_display_extension_randr_basep;
 extern gboolean obt_display_extension_sync;
-extern gint     obt_display_extension_sync_basep;
+extern gint obt_display_extension_sync_basep;
 
-extern Display* obt_display;
+extern Display *obt_display;
 
 /*! Open the X display.  You should call g_set_prgname() before calling this
   function for X Input Methods to work correctly. */
-gboolean obt_display_open(const char *display_name);
-void     obt_display_close(void);
+gboolean obt_display_open( const char *display_name );
+void obt_display_close( void );
 
-void     obt_display_ignore_errors(gboolean ignore);
+void obt_display_ignore_errors( gboolean ignore );
 
-#define  obt_root(screen) (RootWindow(obt_display, screen))
+#define obt_root( screen ) ( RootWindow( obt_display, screen ) )
 
 G_END_DECLS
 

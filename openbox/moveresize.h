@@ -27,11 +27,7 @@
 
 struct _ObClient;
 
-typedef enum {
-    OB_RESIZE_POS_CENTER,
-    OB_RESIZE_POS_TOP,
-    OB_RESIZE_POS_FIXED
-} ObResizePopupPos;
+typedef enum { OB_RESIZE_POS_CENTER, OB_RESIZE_POS_TOP, OB_RESIZE_POS_FIXED } ObResizePopupPos;
 
 extern gboolean moveresize_in_progress;
 extern struct _ObClient *moveresize_client;
@@ -39,14 +35,13 @@ extern struct _ObClient *moveresize_client;
 extern XSyncAlarm moveresize_alarm;
 #endif
 
-void moveresize_startup(gboolean reconfig);
-void moveresize_shutdown(gboolean reconfig);
+void moveresize_startup( gboolean reconfig );
+void moveresize_shutdown( gboolean reconfig );
 
 /*! @param corner This is one of the prop_atoms.net_wm_moveresize_ atoms */
-void moveresize_start(struct _ObClient *c,
-                      gint x, gint y, guint button, guint32 corner);
-void moveresize_end(gboolean cancel);
+void moveresize_start( struct _ObClient *c, gint x, gint y, guint button, guint32 corner );
+void moveresize_end( gboolean cancel );
 
-gboolean moveresize_event(XEvent *e);
+gboolean moveresize_event( XEvent *e );
 
 #endif

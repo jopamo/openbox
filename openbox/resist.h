@@ -19,23 +19,21 @@
 #ifndef ob__resist_h
 #define ob__resist_h
 
-#include "misc.h"
-
 #include <glib.h>
+
+#include "misc.h"
 
 struct _ObClient;
 
 /*! @x The client's x destination (in the client's coordinates, not the frame's
     @y The client's y destination (in the client's coordinates, not the frame's
 */
-void resist_move_windows(struct _ObClient *c, gint resist, gint *x, gint *y);
+void resist_move_windows( struct _ObClient *c, gint resist, gint *x, gint *y );
 /*! @x The client's x destination (in the client's coordinates, not the frame's
     @y The client's y destination (in the client's coordinates, not the frame's
 */
-void resist_move_monitors(struct _ObClient *c, gint resist, gint *x, gint *y);
-void resist_size_windows(struct _ObClient *c, gint resist, gint *w, gint *h,
-                         ObDirection dir);
-void resist_size_monitors(struct _ObClient *c, gint resist, gint *w, gint *h,
-                          ObDirection dir);
+void resist_move_monitors( struct _ObClient *c, gint resist, gint *x, gint *y );
+void resist_size_windows( struct _ObClient *c, gint resist, gint *w, gint *h, ObDirection dir );
+void resist_size_monitors( struct _ObClient *c, gint resist, gint *w, gint *h, ObDirection dir );
 
 #endif

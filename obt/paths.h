@@ -25,25 +25,25 @@ G_BEGIN_DECLS
 
 typedef struct _ObtPaths ObtPaths;
 
-ObtPaths* obt_paths_new(void);
-void obt_paths_ref(ObtPaths *p);
-void obt_paths_unref(ObtPaths *p);
+ObtPaths *obt_paths_new( void );
+void obt_paths_ref( ObtPaths *p );
+void obt_paths_unref( ObtPaths *p );
 
-const gchar* obt_paths_config_home(ObtPaths *p);
-const gchar* obt_paths_data_home(ObtPaths *p);
-const gchar* obt_paths_cache_home(ObtPaths *p);
-GSList* obt_paths_config_dirs(ObtPaths *p);
-GSList* obt_paths_data_dirs(ObtPaths *p);
-GSList* obt_paths_autostart_dirs(ObtPaths *p);
+const gchar *obt_paths_config_home( ObtPaths *p );
+const gchar *obt_paths_data_home( ObtPaths *p );
+const gchar *obt_paths_cache_home( ObtPaths *p );
+GSList *obt_paths_config_dirs( ObtPaths *p );
+GSList *obt_paths_data_dirs( ObtPaths *p );
+GSList *obt_paths_autostart_dirs( ObtPaths *p );
 
-gchar *obt_paths_expand_tilde(const gchar *f);
-gboolean obt_paths_mkdir(const gchar *path, gint mode);
-gboolean obt_paths_mkdir_path(const gchar *path, gint mode);
+gchar *obt_paths_expand_tilde( const gchar *f );
+gboolean obt_paths_mkdir( const gchar *path, gint mode );
+gboolean obt_paths_mkdir_path( const gchar *path, gint mode );
 
 /*! Returns TRUE if the @path points to an executable file.
   If the @path is not an absolute path, then it is searched for in $PATH.
 */
-gboolean obt_paths_try_exec(ObtPaths *p, const gchar *path);
+gboolean obt_paths_try_exec( ObtPaths *p, const gchar *path );
 
 G_END_DECLS
 

@@ -25,29 +25,26 @@ struct _ObClient;
 #include <glib.h>
 
 typedef enum {
-    OB_FOCUS_CYCLE_POPUP_MODE_NONE,
-    OB_FOCUS_CYCLE_POPUP_MODE_ICONS,
-    OB_FOCUS_CYCLE_POPUP_MODE_LIST
+  OB_FOCUS_CYCLE_POPUP_MODE_NONE,
+  OB_FOCUS_CYCLE_POPUP_MODE_ICONS,
+  OB_FOCUS_CYCLE_POPUP_MODE_LIST
 } ObFocusCyclePopupMode;
 
-void focus_cycle_popup_startup(gboolean reconfig);
-void focus_cycle_popup_shutdown(gboolean reconfig);
+void focus_cycle_popup_startup( gboolean reconfig );
+void focus_cycle_popup_shutdown( gboolean reconfig );
 
-void focus_cycle_popup_show(struct _ObClient *c, ObFocusCyclePopupMode mode,
-                            gboolean linear);
-void focus_cycle_popup_hide(void);
+void focus_cycle_popup_show( struct _ObClient *c, ObFocusCyclePopupMode mode, gboolean linear );
+void focus_cycle_popup_hide( void );
 
-void focus_cycle_popup_single_show(struct _ObClient *c);
-void focus_cycle_popup_single_hide(void);
+void focus_cycle_popup_single_show( struct _ObClient *c );
+void focus_cycle_popup_single_hide( void );
 
-gboolean focus_cycle_popup_is_showing(struct _ObClient *c);
+gboolean focus_cycle_popup_is_showing( struct _ObClient *c );
 
 /*! Redraws the focus cycle popup, and returns the current target.  If
     the target given to the function is no longer valid, this will return
     a different target that is valid, and which should be considered the
     current focus cycling target. */
-struct _ObClient *focus_cycle_popup_refresh(struct _ObClient *target,
-                                            gboolean redraw,
-                                            gboolean linear);
+struct _ObClient *focus_cycle_popup_refresh( struct _ObClient *target, gboolean redraw, gboolean linear );
 
 #endif

@@ -19,28 +19,27 @@
 #ifndef __openbox_h
 #define __openbox_h
 
-#include "misc.h"
+#include <glib.h>
 
+#include "misc.h"
 #include "obrender/render.h"
 #include "obrender/theme.h"
 #include "obt/display.h"
 
-#include <glib.h>
-
 extern RrInstance *ob_rr_inst;
 extern RrImageCache *ob_rr_icons;
-extern RrTheme    *ob_rr_theme;
+extern RrTheme *ob_rr_theme;
 
 extern GMainLoop *ob_main_loop;
 
 /*! The number of the screen on which we're running */
-extern gint     ob_screen;
+extern gint ob_screen;
 
 extern gboolean ob_sm_use;
-extern gchar   *ob_sm_id;
+extern gchar *ob_sm_id;
 /* This save_file will get pass to ourselves if we restart too! So we won't
  make a new file every time, yay. */
-extern gchar   *ob_sm_save_file;
+extern gchar *ob_sm_save_file;
 extern gboolean ob_sm_restore;
 extern gboolean ob_replace_wm;
 extern gboolean ob_debug_xinerama;
@@ -49,18 +48,18 @@ extern gboolean ob_debug_xinerama;
 extern const gchar *ob_locale_msg;
 
 /* The state of execution of the window manager */
-ObState ob_state(void);
-void ob_set_state(ObState state);
+ObState ob_state( void );
+void ob_set_state( ObState state );
 
-void ob_restart_other(const gchar *path);
-void ob_restart(void);
-void ob_exit(gint code);
-void ob_exit_replace(void);
+void ob_restart_other( const gchar *path );
+void ob_restart( void );
+void ob_exit( gint code );
+void ob_exit_replace( void );
 
-void ob_reconfigure(void);
+void ob_reconfigure( void );
 
-void ob_exit_with_error(const gchar *msg) G_GNUC_NORETURN;
+void ob_exit_with_error( const gchar *msg ) G_GNUC_NORETURN;
 
-Cursor ob_cursor(ObCursor cursor);
+Cursor ob_cursor( ObCursor cursor );
 
 #endif

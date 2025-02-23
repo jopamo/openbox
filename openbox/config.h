@@ -20,52 +20,51 @@
 #ifndef __config_h
 #define __config_h
 
-#include "misc.h"
-#include "stacking.h"
-#include "place.h"
+#include <glib.h>
+
 #include "client.h"
 #include "geom.h"
+#include "misc.h"
 #include "moveresize.h"
 #include "obrender/render.h"
 #include "obt/xml.h"
-
-#include <glib.h>
+#include "place.h"
+#include "stacking.h"
 
 typedef struct _ObAppSettings ObAppSettings;
 
-struct _ObAppSettings
-{
-    GPatternSpec *class;
-    GPatternSpec *name;
-    GPatternSpec *role;
-    GPatternSpec *group_class;
-    GPatternSpec *group_name;
-    GPatternSpec *title;
-    ObClientType  type;
+struct _ObAppSettings {
+  GPatternSpec *class;
+  GPatternSpec *name;
+  GPatternSpec *role;
+  GPatternSpec *group_class;
+  GPatternSpec *group_name;
+  GPatternSpec *title;
+  ObClientType type;
 
-    GravityPoint position;
-    gboolean pos_given;
-    gboolean pos_force;
+  GravityPoint position;
+  gboolean pos_given;
+  gboolean pos_force;
 
-    gint width_num;
-    gint width_denom;
-    gint height_num;
-    gint height_denom;
+  gint width_num;
+  gint width_denom;
+  gint height_num;
+  gint height_denom;
 
-    guint desktop;
-    gint shade;
-    gint decor;
-    gint focus;
-    ObPlaceMonitor monitor_type;
-    gint monitor;
-    gint iconic;
-    gint skip_pager;
-    gint skip_taskbar;
-    gint max_horz;
-    gint max_vert;
-    gint fullscreen;
+  guint desktop;
+  gint shade;
+  gint decor;
+  gint focus;
+  ObPlaceMonitor monitor_type;
+  gint monitor;
+  gint iconic;
+  gint skip_pager;
+  gint skip_taskbar;
+  gint max_horz;
+  gint max_vert;
+  gint fullscreen;
 
-    gint layer;
+  gint layer;
 };
 
 /*! Should new windows be focused */
@@ -73,7 +72,7 @@ extern gboolean config_focus_new;
 /*! Focus windows when the mouse enters them */
 extern gboolean config_focus_follow;
 /*! Timeout for focusing windows on focus follows mouse, in milliseconds */
-extern guint    config_focus_delay;
+extern guint config_focus_delay;
 /*! If windows should automatically be raised when they are focused in
  focus follows mouse */
 extern gboolean config_focus_raise;
@@ -204,13 +203,13 @@ extern gint config_resist_win;
 extern gint config_resist_edge;
 
 /*! Delay for hiding menu when opening in milliseconds */
-extern guint    config_menu_hide_delay;
+extern guint config_menu_hide_delay;
 /*! Center menus vertically about the parent entry */
 extern gboolean config_menu_middle;
 /*! Delay before opening a submenu in milliseconds */
-extern guint    config_submenu_show_delay;
+extern guint config_submenu_show_delay;
 /*! Delay before closing a submenu in milliseconds */
-extern guint    config_submenu_hide_delay;
+extern guint config_submenu_hide_delay;
 /*! Show manage desktops in client_list_menu */
 extern gboolean config_menu_manage_desktops;
 /*! Load & show icons in user-defined menus */
@@ -220,19 +219,18 @@ extern GSList *config_menu_files;
 /*! Per app settings */
 extern GSList *config_per_app_settings;
 
-void config_startup(ObtXmlInst *i);
-void config_shutdown(void);
+void config_startup( ObtXmlInst *i );
+void config_shutdown( void );
 
 /*! Create an ObAppSettings structure with the default values */
-ObAppSettings* config_create_app_settings(void);
+ObAppSettings *config_create_app_settings( void );
 /*! Copies any settings in src to dest, if they are their default value in
   src. */
-void config_app_settings_copy_non_defaults(const ObAppSettings *src,
-                                           ObAppSettings *dest);
+void config_app_settings_copy_non_defaults( const ObAppSettings *src, ObAppSettings *dest );
 /*! Parses an x geometry style position, with some extensions like ratios
   and percentages */
-void config_parse_gravity_coord(xmlNodePtr node, GravityCoord *c);
+void config_parse_gravity_coord( xmlNodePtr node, GravityCoord *c );
 /*! Parses a rational number or percentage into num and denom */
-void config_parse_relative_number(gchar *s, gint *num, gint *denom);
+void config_parse_relative_number( gchar *s, gint *num, gint *denom );
 
 #endif

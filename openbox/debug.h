@@ -21,23 +21,17 @@
 
 #include <glib.h>
 
-void ob_debug_startup(void);
-void ob_debug_shutdown(void);
+void ob_debug_startup( void );
+void ob_debug_shutdown( void );
 
-void ob_debug(const gchar *a, ...);
+void ob_debug( const gchar *a, ... );
 
-typedef enum {
-    OB_DEBUG_NORMAL,
-    OB_DEBUG_FOCUS,
-    OB_DEBUG_APP_BUGS,
-    OB_DEBUG_SM,
-    OB_DEBUG_TYPE_NUM
-} ObDebugType;
+typedef enum { OB_DEBUG_NORMAL, OB_DEBUG_FOCUS, OB_DEBUG_APP_BUGS, OB_DEBUG_SM, OB_DEBUG_TYPE_NUM } ObDebugType;
 
-void ob_debug_type(ObDebugType type, const gchar *a, ...);
+void ob_debug_type( ObDebugType type, const gchar *a, ... );
 
-void ob_debug_enable(ObDebugType type, gboolean enable);
+void ob_debug_enable( ObDebugType type, gboolean enable );
 
-void ob_debug_show_prompts(void);
+void ob_debug_show_prompts( void );
 
 #endif

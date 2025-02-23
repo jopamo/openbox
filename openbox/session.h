@@ -19,23 +19,23 @@
 #ifndef __ob__session_h
 #define __ob__session_h
 
+#include <glib.h>
+
 #include "client.h"
 #include "screen.h"
-
-#include <glib.h>
 
 typedef struct _ObSessionState ObSessionState;
 
 struct _ObSessionState {
-    gchar *id, *command, *name, *class, *role;
-    ObClientType type;
-    guint desktop;
-    gint x, y, w, h;
-    gboolean shaded, iconic, skip_pager, skip_taskbar, fullscreen;
-    gboolean above, below, max_horz, max_vert, undecorated;
-    gboolean focused;
+  gchar *id, *command, *name, *class, *role;
+  ObClientType type;
+  guint desktop;
+  gint x, y, w, h;
+  gboolean shaded, iconic, skip_pager, skip_taskbar, fullscreen;
+  gboolean above, below, max_horz, max_vert, undecorated;
+  gboolean focused;
 
-    gboolean matched;
+  gboolean matched;
 };
 
 /*! The desktop being viewed when the session was saved. A valud of -1 means
@@ -48,13 +48,13 @@ extern GSList *session_desktop_names;
 
 extern GList *session_saved_state;
 
-void session_startup(gint argc, gchar **argv);
-void session_shutdown(gboolean permanent);
+void session_startup( gint argc, gchar **argv );
+void session_shutdown( gboolean permanent );
 
-GList* session_state_find(struct _ObClient *c);
+GList *session_state_find( struct _ObClient *c );
 
-void session_request_logout(gboolean silent);
+void session_request_logout( gboolean silent );
 
-gboolean session_connected(void);
+gboolean session_connected( void );
 
 #endif

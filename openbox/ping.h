@@ -31,13 +31,13 @@ struct _ObClient;
   @param dead TRUE if the app isn't responding, FALSE if it starts responding
               again
 */
-typedef void (*ObPingEventHandler) (struct _ObClient *c, gboolean dead);
+typedef void ( *ObPingEventHandler )( struct _ObClient *c, gboolean dead );
 
-void ping_startup(gboolean reconfigure);
-void ping_shutdown(gboolean reconfigure);
+void ping_startup( gboolean reconfigure );
+void ping_shutdown( gboolean reconfigure );
 
-void ping_start(struct _ObClient *c, ObPingEventHandler h);
+void ping_start( struct _ObClient *c, ObPingEventHandler h );
 
-void ping_got_pong(guint32 id);
+void ping_got_pong( guint32 id );
 
 #endif

@@ -21,9 +21,9 @@
 
 #include <glib.h>
 
-gboolean translate_button(const gchar *str, guint *state, guint *keycode);
-gboolean translate_key(const gchar *str, guint *state, guint *keycode);
+gboolean translate_button( const gchar *str, guint *state, guint *keycode );
+gboolean translate_key( const gchar *str, guint *state, guint *keycode );
 
-void RrImageSetDestroyFunc(RrImage *image, RrImageDestroyFunc func);
+void RrImageSetDestroyFunc( RrImage *image, RrImageDestroyFunc func );
 
 #endif

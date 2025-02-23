@@ -19,70 +19,69 @@
 #ifndef __dock_h
 #define __dock_h
 
-#include "window.h"
-#include "stacking.h"
-#include "geom.h"
-#include "obrender/render.h"
-
-#include <glib.h>
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
+#include <glib.h>
 
-typedef struct _ObDock    ObDock;
+#include "geom.h"
+#include "obrender/render.h"
+#include "stacking.h"
+#include "window.h"
+
+typedef struct _ObDock ObDock;
 typedef struct _ObDockApp ObDockApp;
 
-struct _ObDock
-{
-    ObWindow obwin;
+struct _ObDock {
+  ObWindow obwin;
 
-    Window frame;
-    RrAppearance *a_frame;
+  Window frame;
+  RrAppearance *a_frame;
 
-    /* actual position (when not auto-hidden) */
-    Rect area;
+  /* actual position (when not auto-hidden) */
+  Rect area;
 
-    gboolean hidden;
+  gboolean hidden;
 
-    GList *dock_apps;
-    GHashTable *dock_map;
+  GList *dock_apps;
+  GHashTable *dock_map;
 };
 
 struct _ObDockApp {
-    gint ignore_unmaps;
+  gint ignore_unmaps;
 
-    Window icon_win;
-    Window name_win;
+  Window icon_win;
+  Window name_win;
 
-    gchar *name;
-    gchar *class;
+  gchar *name;
+  gchar *class;
 
-    gint x;
-    gint y;
-    gint w;
-    gint h;
+  gint x;
+  gint y;
+  gint w;
+  gint h;
 };
 
 extern StrutPartial dock_strut;
 
-void dock_startup(gboolean reconfig);
-void dock_shutdown(gboolean reconfig);
+void dock_startup( gboolean reconfig );
+void dock_shutdown( gboolean reconfig );
 
-void dock_configure(void);
-void dock_hide(gboolean hide);
+void dock_configure( void );
+void dock_hide( gboolean hide );
 
-void dock_manage(Window icon_win, Window name_win);
+void dock_manage( Window icon_win, Window name_win );
 
-void dock_unmanage_all(void);
-void dock_unmanage(ObDockApp *app, gboolean reparent);
+void dock_unmanage_all( void );
+void dock_unmanage( ObDockApp *app, gboolean reparent );
 
-void dock_app_drag(ObDockApp *app, XMotionEvent *e);
-void dock_app_configure(ObDockApp *app, gint w, gint h);
+void dock_app_drag( ObDockApp *app, XMotionEvent *e );
+void dock_app_configure( ObDockApp *app, gint w, gint h );
 
-void dock_get_area(Rect *a);
+void dock_get_area( Rect *a );
 
-void dock_raise_dock(void);
-void dock_lower_dock(void);
+void dock_raise_dock( void );
+void dock_lower_dock( void );
 
-ObDockApp* dock_find_dockapp(Window xwin);
+ObDockApp *dock_find_dockapp( Window xwin );
 
 #endif

@@ -26,26 +26,26 @@ struct _ObClient;
 
 /*! The amount of time before a window appears that is checked for user input
     to determine if the user is working in another window */
-#define OB_EVENT_USER_TIME_DELAY (1000) /* milliseconds */
+#define OB_EVENT_USER_TIME_DELAY ( 1000 ) /* milliseconds */
 
 /*! The last user-interaction time, as given by the clients */
 extern Time event_last_user_time;
 
-void event_startup(gboolean reconfig);
-void event_shutdown(gboolean reconfig);
+void event_startup( gboolean reconfig );
+void event_shutdown( gboolean reconfig );
 
 /*! Make as if the mouse just entered the client, use only when using focus
     follows mouse */
-void event_enter_client(struct _ObClient *client);
+void event_enter_client( struct _ObClient *client );
 
 /*! Make as if the mouse just left the client, use only when using focus
     follows mouse */
-void event_leave_client(struct _ObClient *client);
+void event_leave_client( struct _ObClient *client );
 
 /*! Make mouse focus not move at all from the stuff that happens between these
     two function calls. */
-gulong event_start_ignore_all_enters(void);
-void event_end_ignore_all_enters(gulong start);
+gulong event_start_ignore_all_enters( void );
+void event_end_ignore_all_enters( gulong start );
 
 /*! End *all* active and passive grabs on the keyboard
     This is called in situations where if there is a grab going on, then
@@ -54,38 +54,38 @@ void event_end_ignore_all_enters(gulong start);
 
     Actions should not rely on being able to move focus during an
     interactive grab. */
-void event_cancel_all_key_grabs(void);
+void event_cancel_all_key_grabs( void );
 
 /* Halts any focus delay in progress, use this when the user is selecting a
    window for focus */
-void event_halt_focus_delay(void);
+void event_halt_focus_delay( void );
 
 /*! Compare t1 and t2, taking into account wraparound. True if t1
     comes at the same time or later than t2. */
-gboolean event_time_after(guint32 t1, guint32 t2);
+gboolean event_time_after( guint32 t1, guint32 t2 );
 
 /*! Time at which the current event occured.  If this is not known, this
   is a time at or after it, but at or before any other events we will process
 */
-Time event_time(void);
+Time event_time( void );
 
 /*! Force event_time() to skip the current timestamp and look for the next
   one. */
-void event_reset_time(void);
+void event_reset_time( void );
 
 /*! A time at which an event happened that caused this current event to be
   generated.  This is a user-provided time and not to be trusted.
   Returns CurrentTime if there was no source time provided.
 */
-Time event_source_time(void);
+Time event_source_time( void );
 
 /*! Update the timestamp for when the user has last used the focused window.
   This updates the timestamp to the time of the last event, given by
   event_time().
 */
-void event_update_user_time(void);
+void event_update_user_time( void );
 
 /*! Reset the timestamp for when the user has last used the focused window. */
-void event_reset_user_time(void);
+void event_reset_user_time( void );
 
 #endif

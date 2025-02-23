@@ -20,32 +20,26 @@
 #ifndef ob__place_h
 #define ob__place_h
 
-#include "geom.h"
-
 #include <glib.h>
+
+#include "geom.h"
 
 struct _ObClient;
 struct _ObAppSettings;
 
-typedef enum
-{
-    OB_PLACE_POLICY_SMART,
-    OB_PLACE_POLICY_MOUSE
-} ObPlacePolicy;
+typedef enum { OB_PLACE_POLICY_SMART, OB_PLACE_POLICY_MOUSE } ObPlacePolicy;
 
-typedef enum
-{
-    OB_PLACE_MONITOR_ANY,
-    OB_PLACE_MONITOR_ACTIVE,
-    OB_PLACE_MONITOR_MOUSE,
-    OB_PLACE_MONITOR_PRIMARY,
-    OB_PLACE_MONITOR_ALL
+typedef enum {
+  OB_PLACE_MONITOR_ANY,
+  OB_PLACE_MONITOR_ACTIVE,
+  OB_PLACE_MONITOR_MOUSE,
+  OB_PLACE_MONITOR_PRIMARY,
+  OB_PLACE_MONITOR_ALL
 } ObPlaceMonitor;
 
 /*! Return TRUE if openbox chose the position for the window, and FALSE if
   the application chose it */
-gboolean place_client(struct _ObClient *client,
-                      gboolean client_to_be_foregrounded,
-                      Rect* client_area, struct _ObAppSettings *settings);
+gboolean place_client( struct _ObClient *client, gboolean client_to_be_foregrounded, Rect *client_area,
+                       struct _ObAppSettings *settings );
 
 #endif

@@ -21,6 +21,6 @@
 
 struct _ObFrame;
 
-void framerender_frame(struct _ObFrame *self);
+void framerender_frame( struct _ObFrame *self );
 
 #endif

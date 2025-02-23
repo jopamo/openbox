@@ -20,29 +20,29 @@
 #ifndef ob__keybaord_h
 #define ob__keybaord_h
 
-#include "keytree.h"
-#include "frame.h"
-
-#include <glib.h>
 #include <X11/Xlib.h>
+#include <glib.h>
+
+#include "frame.h"
+#include "keytree.h"
 
 struct _ObClient;
 struct _ObActionsAct;
 
 extern KeyBindingTree *keyboard_firstnode;
 
-void keyboard_startup(gboolean reconfig);
-void keyboard_shutdown(gboolean reconfig);
+void keyboard_startup( gboolean reconfig );
+void keyboard_shutdown( gboolean reconfig );
 
-void keyboard_rebind(void);
+void keyboard_rebind( void );
 
-void keyboard_chroot(GList *keylist);
-gboolean keyboard_bind(GList *keylist, struct _ObActionsAct *action, gboolean grab);
-void keyboard_unbind_all(void);
+void keyboard_chroot( GList *keylist );
+gboolean keyboard_bind( GList *keylist, struct _ObActionsAct *action, gboolean grab );
+void keyboard_unbind_all( void );
 
-gboolean keyboard_event(struct _ObClient *client, const XEvent *e);
+gboolean keyboard_event( struct _ObClient *client, const XEvent *e );
 /*! @param break_chroots how many chroots to break. -1 means to break them ALL!
  */
-void keyboard_reset_chains(gint break_chroots);
+void keyboard_reset_chains( gint break_chroots );
 
 #endif

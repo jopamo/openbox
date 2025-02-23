@@ -20,13 +20,12 @@
 #ifndef __mask_h
 #define __mask_h
 
-#include "render.h"
 #include "geom.h"
+#include "render.h"
 
-RrPixmapMask *RrPixmapMaskNew(const RrInstance *inst,
-                              gint w, gint h, const gchar *data);
-void RrPixmapMaskFree(RrPixmapMask *m);
-RrPixmapMask *RrPixmapMaskCopy(const RrPixmapMask *src);
-void RrPixmapMaskDraw(Pixmap p, const RrTextureMask *m, const RrRect *area);
+RrPixmapMask *RrPixmapMaskNew( const RrInstance *inst, gint w, gint h, const gchar *data );
+void RrPixmapMaskFree( RrPixmapMask *m );
+RrPixmapMask *RrPixmapMaskCopy( const RrPixmapMask *src );
+void RrPixmapMaskDraw( Pixmap p, const RrTextureMask *m, const RrRect *area );
 
 #endif

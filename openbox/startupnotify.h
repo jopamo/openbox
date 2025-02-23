@@ -19,32 +19,31 @@
 #ifndef ob__startupnotify_h
 #define ob__startupnotify_h
 
-#include <glib.h>
 #include <X11/Xlib.h>
+#include <glib.h>
 
-void sn_startup(gboolean reconfig);
-void sn_shutdown(gboolean reconfig);
+void sn_startup( gboolean reconfig );
+void sn_shutdown( gboolean reconfig );
 
-gboolean sn_app_starting(void);
+gboolean sn_app_starting( void );
 
 /*! Notify that an app has started
   @param wmclass the WM_CLASS[1] hint
   @param name the WM_CLASS[0] hint
  */
-Time sn_app_started(const gchar *id, const gchar *wmclass, const gchar *name);
+Time sn_app_started( const gchar *id, const gchar *wmclass, const gchar *name );
 
 /*! Get the desktop requested via the startup-notiication protocol if one
   was requested */
-gboolean sn_get_desktop(gchar *id, guint *desktop);
+gboolean sn_get_desktop( gchar *id, guint *desktop );
 
 /* Get the environment to run the program in, with startup notification */
-void sn_setup_spawn_environment(const gchar *program, const gchar *name,
-                                const gchar *icon_name, const gchar *wmclass,
-                                gint desktop);
+void sn_setup_spawn_environment( const gchar *program, const gchar *name, const gchar *icon_name, const gchar *wmclass,
+                                 gint desktop );
 
 /* Tell startup notification we're not actually running the program we
    told it we were
 */
-void sn_spawn_cancel(void);
+void sn_spawn_cancel( void );
 
 #endif

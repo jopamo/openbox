@@ -20,12 +20,12 @@
 #ifndef ob__menuframe_h
 #define ob__menuframe_h
 
+#include <glib.h>
+
 #include "geom.h"
-#include "window.h"
 #include "obrender/render.h"
 #include "obt/keyboard.h"
-
-#include <glib.h>
+#include "window.h"
 
 struct _ObClient;
 struct _ObMenu;
@@ -36,113 +36,105 @@ typedef struct _ObMenuEntryFrame ObMenuEntryFrame;
 
 extern GList *menu_frame_visible;
 
-struct _ObMenuFrame
-{
-    /* stuff to be an ObWindow */
-    ObWindow obwin;
-    Window window;
+struct _ObMenuFrame {
+  /* stuff to be an ObWindow */
+  ObWindow obwin;
+  Window window;
 
-    struct _ObMenu *menu;
+  struct _ObMenu *menu;
 
-    /* The client that the visual instance of the menu is associated with for
-       its actions */
-    struct _ObClient *client;
+  /* The client that the visual instance of the menu is associated with for
+     its actions */
+  struct _ObClient *client;
 
-    ObMenuFrame *parent;
-    ObMenuEntryFrame *parent_entry;
-    ObMenuFrame *child;
-    ObMenuEntryFrame *child_entry;
+  ObMenuFrame *parent;
+  ObMenuEntryFrame *parent_entry;
+  ObMenuFrame *child;
+  ObMenuEntryFrame *child_entry;
 
-    GList *entries;
-    ObMenuEntryFrame *selected;
+  GList *entries;
+  ObMenuEntryFrame *selected;
 
-    /* show entries from the menu starting at this index */
-    guint show_from;
+  /* show entries from the menu starting at this index */
+  guint show_from;
 
-    /* If the submenus are being drawn to the right or the left */
-    gboolean direction_right;
+  /* If the submenus are being drawn to the right or the left */
+  gboolean direction_right;
 
-    /* On-screen area (including borders!) */
-    Rect area;
-    Strut item_margin;
-    gint inner_w; /* inside the borders */
-    gint item_h;  /* height of all normal items */
-    gint text_x;  /* offset at which the text appears in the items */
-    gint text_w;  /* width of the text area in the items */
-    gint text_h;  /* height of the items */
+  /* On-screen area (including borders!) */
+  Rect area;
+  Strut item_margin;
+  gint inner_w; /* inside the borders */
+  gint item_h;  /* height of all normal items */
+  gint text_x;  /* offset at which the text appears in the items */
+  gint text_w;  /* width of the text area in the items */
+  gint text_h;  /* height of the items */
 
-    gint monitor; /* monitor on which to show the menu in xinerama */
+  gint monitor; /* monitor on which to show the menu in xinerama */
 
-    /* We make a copy of this for each menu, so that we don't have to re-render
-       the background of the entire menu each time we render an item inside it.
-    */
-    RrAppearance *a_items;
+  /* We make a copy of this for each menu, so that we don't have to re-render
+     the background of the entire menu each time we render an item inside it.
+  */
+  RrAppearance *a_items;
 
-    gboolean got_press; /* don't allow a KeyRelease event to run things in the
-                           menu until it has seen a KeyPress.  this is to
-                           avoid having the keybinding used to show the menu
-                           end up running something inside the menu */
-    guint press_keycode; /* the KeyCode that was used in the last KeyPress */
-    gboolean press_doexec; /* if the upcoming KeyRelease should be used to
-                              execute the menu item that was selected by the
-                              KeyPress */
+  gboolean got_press;    /* don't allow a KeyRelease event to run things in the
+                            menu until it has seen a KeyPress.  this is to
+                            avoid having the keybinding used to show the menu
+                            end up running something inside the menu */
+  guint press_keycode;   /* the KeyCode that was used in the last KeyPress */
+  gboolean press_doexec; /* if the upcoming KeyRelease should be used to
+                            execute the menu item that was selected by the
+                            KeyPress */
 };
 
-struct _ObMenuEntryFrame
-{
-    struct _ObMenuEntry *entry;
-    ObMenuFrame *frame;
+struct _ObMenuEntryFrame {
+  struct _ObMenuEntry *entry;
+  ObMenuFrame *frame;
 
-    guint ignore_enters;
+  guint ignore_enters;
 
-    Rect area;
-    gint border;
+  Rect area;
+  gint border;
 
-    Window window;
-    Window icon;
-    Window text;
-    Window bullet;
+  Window window;
+  Window icon;
+  Window text;
+  Window bullet;
 };
 
 extern GHashTable *menu_frame_map;
 
-void menu_frame_startup(gboolean reconfig);
-void menu_frame_shutdown(gboolean reconfig);
+void menu_frame_startup( gboolean reconfig );
+void menu_frame_shutdown( gboolean reconfig );
 
-ObMenuFrame* menu_frame_new(struct _ObMenu *menu,
-                            guint show_from,
-                            struct _ObClient *client);
-void menu_frame_free(ObMenuFrame *self);
+ObMenuFrame *menu_frame_new( struct _ObMenu *menu, guint show_from, struct _ObClient *client );
+void menu_frame_free( ObMenuFrame *self );
 
-ObtIC* menu_frame_ic(ObMenuFrame *self);
+ObtIC *menu_frame_ic( ObMenuFrame *self );
 
-void menu_frame_move(ObMenuFrame *self, gint x, gint y);
-void menu_frame_move_on_screen(ObMenuFrame *self, gint x, gint y,
-                               gint *dx, gint *dy);
+void menu_frame_move( ObMenuFrame *self, gint x, gint y );
+void menu_frame_move_on_screen( ObMenuFrame *self, gint x, gint y, gint *dx, gint *dy );
 
-gboolean menu_frame_show_topmenu(ObMenuFrame *self, const GravityPoint *pos,
-                                 gint monitor, gboolean mouse,
-                                 gboolean user_positioned);
-gboolean menu_frame_show_submenu(ObMenuFrame *self, ObMenuFrame *parent,
-                                 ObMenuEntryFrame *parent_entry);
+gboolean menu_frame_show_topmenu( ObMenuFrame *self, const GravityPoint *pos, gint monitor, gboolean mouse,
+                                  gboolean user_positioned );
+gboolean menu_frame_show_submenu( ObMenuFrame *self, ObMenuFrame *parent, ObMenuEntryFrame *parent_entry );
 
-void menu_frame_hide_all(void);
-void menu_frame_hide_all_client(struct _ObClient *client);
+void menu_frame_hide_all( void );
+void menu_frame_hide_all_client( struct _ObClient *client );
 
-void menu_frame_render(ObMenuFrame *self);
+void menu_frame_render( ObMenuFrame *self );
 
-void menu_frame_select(ObMenuFrame *self, ObMenuEntryFrame *entry,
-                       gboolean immediate);
-void menu_frame_select_previous(ObMenuFrame *self);
-void menu_frame_select_next(ObMenuFrame *self);
-void menu_frame_select_first(ObMenuFrame *self);
-void menu_frame_select_last(ObMenuFrame *self);
+void menu_frame_select( ObMenuFrame *self, ObMenuEntryFrame *entry, gboolean immediate );
+void menu_frame_select_previous( ObMenuFrame *self );
+void menu_frame_select_next( ObMenuFrame *self );
+void menu_frame_select_first( ObMenuFrame *self );
+void menu_frame_select_last( ObMenuFrame *self );
 
-ObMenuFrame* menu_frame_under(gint x, gint y);
-ObMenuEntryFrame* menu_entry_frame_under(gint x, gint y);
+ObMenuFrame *menu_frame_under( gint x, gint y );
+ObMenuEntryFrame *menu_entry_frame_under( gint x, gint y );
 
-void menu_entry_frame_show_submenu(ObMenuEntryFrame *self);
+void menu_entry_frame_show_submenu( ObMenuEntryFrame *self );
 
-void menu_entry_frame_execute(ObMenuEntryFrame *self, guint state);
+void menu_entry_frame_execute( ObMenuEntryFrame *self, guint state );
 
 #endif

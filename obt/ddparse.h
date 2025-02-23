@@ -21,37 +21,37 @@
 typedef struct _ObtDDParseGroup ObtDDParseGroup;
 
 typedef enum {
-    OBT_DDPARSE_EXEC,
-    OBT_DDPARSE_STRING,
-    OBT_DDPARSE_LOCALESTRING,
-    OBT_DDPARSE_STRINGS,
-    OBT_DDPARSE_LOCALESTRINGS,
-    OBT_DDPARSE_BOOLEAN,
-    OBT_DDPARSE_NUMERIC,
-    OBT_DDPARSE_ENUM_TYPE,
-    OBT_DDPARSE_ENVIRONMENTS,
-    OBT_DDPARSE_NUM_VALUE_TYPES
+  OBT_DDPARSE_EXEC,
+  OBT_DDPARSE_STRING,
+  OBT_DDPARSE_LOCALESTRING,
+  OBT_DDPARSE_STRINGS,
+  OBT_DDPARSE_LOCALESTRINGS,
+  OBT_DDPARSE_BOOLEAN,
+  OBT_DDPARSE_NUMERIC,
+  OBT_DDPARSE_ENUM_TYPE,
+  OBT_DDPARSE_ENVIRONMENTS,
+  OBT_DDPARSE_NUM_VALUE_TYPES
 } ObtDDParseValueType;
 
 typedef struct _ObtDDParseValue {
-    ObtDDParseValueType type;
-    union _ObtDDParseValueValue {
-        gchar *string;
-        struct _ObtDDParseValueStrings {
-            gchar **a;
-            gulong n;
-        } strings;
-        gboolean boolean;
-        gfloat numeric;
-        guint enumerable;
-        guint environments; /*!< A mask of flags from ObtLinkEnvMask */
-    } value;
+  ObtDDParseValueType type;
+  union _ObtDDParseValueValue {
+    gchar *string;
+    struct _ObtDDParseValueStrings {
+      gchar **a;
+      gulong n;
+    } strings;
+    gboolean boolean;
+    gfloat numeric;
+    guint enumerable;
+    guint environments; /*!< A mask of flags from ObtLinkEnvMask */
+  } value;
 } ObtDDParseValue;
 
 /* Returns a hash table where the keys are groups, and the values are
    ObtDDParseGroups */
-GHashTable* obt_ddparse_file(const gchar *name, GSList *paths);
+GHashTable *obt_ddparse_file( const gchar *name, GSList *paths );
 
 /* Returns a hash table where the keys are "keys" in the .desktop file,
    and the values are "values" in the .desktop file, for the group @g. */
-GHashTable* obt_ddparse_group_keys(ObtDDParseGroup *g);
+GHashTable *obt_ddparse_group_keys( ObtDDParseGroup *g );

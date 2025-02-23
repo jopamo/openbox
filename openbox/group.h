@@ -26,19 +26,18 @@ typedef struct _ObGroup ObGroup;
 
 struct _ObClient;
 
-struct _ObGroup
-{
-    Window leader;
+struct _ObGroup {
+  Window leader;
 
-    /* list of clients */
-    GSList *members;
+  /* list of clients */
+  GSList *members;
 };
 
-void group_startup(gboolean reconfig);
-void group_shutdown(gboolean reconfig);
+void group_startup( gboolean reconfig );
+void group_shutdown( gboolean reconfig );
 
-ObGroup *group_add(Window leader, struct _ObClient *client);
+ObGroup *group_add( Window leader, struct _ObClient *client );
 
-void group_remove(ObGroup *self, struct _ObClient *client);
+void group_remove( ObGroup *self, struct _ObClient *client );
 
 #endif

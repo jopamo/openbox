@@ -19,30 +19,28 @@
 #ifndef ob__mouse_h
 #define ob__mouse_h
 
+#include <X11/Xlib.h>
+
 #include "frame.h"
 #include "misc.h"
 
-#include <X11/Xlib.h>
-
 struct _ObActionsAct;
 
-void mouse_startup(gboolean reconfig);
-void mouse_shutdown(gboolean reconfig);
+void mouse_startup( gboolean reconfig );
+void mouse_shutdown( gboolean reconfig );
 
-gboolean mouse_bind(const gchar *buttonstr, ObFrameContext context,
-                    ObMouseAction mact, struct _ObActionsAct *action);
-void mouse_unbind_all(void);
+gboolean mouse_bind( const gchar *buttonstr, ObFrameContext context, ObMouseAction mact, struct _ObActionsAct *action );
+void mouse_unbind_all( void );
 
-gboolean mouse_event(struct _ObClient *client, XEvent *e);
+gboolean mouse_event( struct _ObClient *client, XEvent *e );
 
-void mouse_grab_for_client(struct _ObClient *client, gboolean grab);
+void mouse_grab_for_client( struct _ObClient *client, gboolean grab );
 
-ObFrameContext mouse_button_frame_context(ObFrameContext context,
-                                          guint button, guint state);
+ObFrameContext mouse_button_frame_context( ObFrameContext context, guint button, guint state );
 
 /*! If a replay pointer is needed, then do it.  Call this when windows are
   going to be moving/appearing/disappearing, so that you know the mouse click
   will go to the right window */
-void mouse_replay_pointer(void);
+void mouse_replay_pointer( void );
 
 #endif

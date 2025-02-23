@@ -22,16 +22,15 @@
 #include <glib.h>
 
 #ifdef HAVE_STRING_H
-#  include <string.h> /* for memset() */
+#include <string.h> /* for memset() */
 #endif
 
 G_BEGIN_DECLS
 
 /* Util funcs */
 #define obt_free g_free
-#define obt_free0(p, type, num) memset((p), 0, sizeof(type) * (num)), g_free(p)
+#define obt_free0( p, type, num ) memset( ( p ), 0, sizeof( type ) * ( num ) ), g_free( p )
 
 G_END_DECLS
-
 
 #endif /*__obt_util_h*/
