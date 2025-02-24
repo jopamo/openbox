@@ -67,7 +67,6 @@ static Window createWindow(Window parent, Visual *visual,
 static Visual *check_32bit_client(ObClient *c)
 {
     XWindowAttributes wattrib;
-    Status ret;
 
     /* we're already running at 32 bit depth, yay. we don't need to use their
        visual */
