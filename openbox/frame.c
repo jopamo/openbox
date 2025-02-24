@@ -73,7 +73,7 @@ static Visual *check_32bit_client(ObClient *c)
     if (RrDepth(ob_rr_inst) == 32)
         return NULL;
 
-    ret = XGetWindowAttributes(obt_display, c->window, &wattrib);
+    Status ret = XGetWindowAttributes(obt_display, c->window, &wattrib);
     g_assert(ret != BadDrawable);
     g_assert(ret != BadWindow);
 
