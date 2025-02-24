@@ -1717,7 +1717,7 @@ void frame_flash_stop(ObFrame *self)
 
 static gulong frame_animate_iconify_time_left(ObFrame *self, const GDateTime *now)
 {
-    GTimeSpan time_left = g_date_time_difference(now, self->iconify_animation_end);
+    GTimeSpan time_left = g_date_time_difference((GDateTime *)now, self->iconify_animation_end);
     return MAX(time_left / G_USEC_PER_SEC, 0);
 }
 
