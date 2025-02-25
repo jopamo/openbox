@@ -318,157 +318,198 @@ static gboolean get_text_property(Window win, Atom prop,
     }
 }
 
-/*! Returns one or more UTF-8 encoded strings from the text property.
+/*!
+  Returns one or more UTF-8 encoded strings from the text property.
+
   @param tprop The XTextProperty to convert into UTF-8 string(s).
-  @param type The type which specifies the format that the text must meet, or
-    0 to allow any valid characters that can be converted to UTF-8 through.
-  @param max The maximum number of strings to return.  -1 to return them all.
-  @return If max is 1, then this returns a gchar* with the single string.
-    Otherwise, this returns a gchar** of no more than max strings (or all
-    strings read, if max is negative). If an error occurs, NULL is returned.
- */
-static void* convert_text_property(XTextProperty *tprop,
-                                   ObtPropTextType type, gint max)
+  @param type  The type which specifies format constraints (or 0 for “anything convertible”).
+  @param max   The maximum number of strings to return; -1 to return them all.
+
+  @return
+   - If max == 1, returns a single `gchar*` (heap-allocated UTF-8 string).
+   - Otherwise, returns a `gchar**` (null-terminated list of up to `max` strings).
+   - On error, returns NULL.
+*/
+static void *
+convert_text_property(XTextProperty *tprop, ObtPropTextType type, gint max)
 {
-    enum {
-        LATIN1,
-        UTF8,
-        LOCALE
-    } encoding;
-    const gboolean return_single = (max == 1);
-    gboolean ok = FALSE;
+    gboolean return_single = (max == 1);
+
+    // Temporary array from either XmbTextPropertyToTextList or manual parsing:
     gchar **strlist = NULL;
-    gchar *single[1] = { NULL };
-    gchar **retlist = single; /* single is used when max == 1 */
-    gint i, n_strs;
+    // Did we get strlist via XmbTextPropertyToTextList (so must call XFreeStringList later)?
+    gboolean use_xfree = FALSE;
 
-    /* Read each string in the text property and store a pointer to it in
-       retlist.  These pointers point into the X data structures directly.
+    gint n_strs = 0;
 
-       Then we will convert them to UTF-8, and replace the retlist pointer with
-       a new one.
-    */
+    // Final results:
+    gchar *single_str = NULL;  // the single string if return_single==TRUE
+    gchar **retlist   = NULL;  // array of strings if return_single==FALSE
+
+    // Distinguish internal encodings
+    enum {
+        ENCODING_LATIN1,
+        ENCODING_UTF8,
+        ENCODING_LOCALE
+    } encoding;
+
+    // Quick sanity check:
+    if (!tprop || tprop->nitems == 0 || tprop->value == NULL)
+        return NULL;
+
+    // Identify the encoding and build `strlist`
     if (tprop->encoding == OBT_PROP_ATOM(COMPOUND_TEXT))
     {
-        encoding = LOCALE;
-        ok = (XmbTextPropertyToTextList(
-                   obt_display, tprop, &strlist, &n_strs) == Success);
-        if (ok) {
-            if (max >= 0)
-                n_strs = MIN(max, n_strs);
-            if (!return_single)
-                retlist = g_new0(gchar*, n_strs+1);
-            if (retlist)
-                for (i = 0; i < n_strs; ++i)
-                    retlist[i] = strlist[i];
-        }
+        //  COMPOUND_TEXT -> call XmbTextPropertyToTextList
+        encoding = ENCODING_LOCALE;
+        Status status = XmbTextPropertyToTextList(obt_display, tprop, &strlist, &n_strs);
+        if (status != Success || n_strs <= 0 || !strlist)
+            goto fail;
+        use_xfree = TRUE;  // Must free via XFreeStringList
     }
     else if (tprop->encoding == OBT_PROP_ATOM(UTF8_STRING) ||
              tprop->encoding == OBT_PROP_ATOM(STRING))
     {
-        gchar *p; /* iterator */
+        //  UTF8_STRING or STRING -> manually parse the null-terminated substrings
+        encoding = (tprop->encoding == OBT_PROP_ATOM(STRING))
+                   ? ENCODING_LATIN1
+                   : ENCODING_UTF8;
 
-        if (tprop->encoding == OBT_PROP_ATOM(STRING))
-            encoding = LATIN1;
-        else
-            encoding = UTF8;
-        ok = TRUE;
+        gchar *p = (gchar *) tprop->value;
+        gchar *end = p + tprop->nitems;
 
-        /* First, count the number of strings. Then make a structure for them
-           and copy pointers to them into it. */
-        p = (gchar*)tprop->value;
-        n_strs = 0;
-        while (p < (gchar*)tprop->value + tprop->nitems) {
-            p += strlen(p) + 1; /* next string */
-            ++n_strs;
+        // Count how many strings are in the property
+        while (p < end) {
+            p += strlen(p) + 1;  // Move past this string’s trailing '\0'
+            n_strs++;
         }
 
-        if (max >= 0)
-            n_strs = MIN(max, n_strs);
-        if (!return_single)
-            retlist = g_new0(gchar*, n_strs+1);
-        if (retlist) {
-            p = (gchar*)tprop->value;
-            for (i = 0; i < n_strs; ++i) {
-                retlist[i] = p;
-                p += strlen(p) + 1; /* next string */
+        if (n_strs <= 0)
+            goto fail;
+
+        // Allocate array of pointers (but not the strings themselves)
+        strlist = g_new0(gchar*, n_strs + 1);
+        // We will free this later with g_free() (NOT XFreeStringList) => use_xfree=FALSE
+        p = (gchar *) tprop->value;
+        for (int i = 0; i < n_strs; i++) {
+            strlist[i] = p;
+            p += strlen(p) + 1;
+        }
+    }
+    else {
+        // Unsupported encoding
+        goto fail;
+    }
+
+    // If caller gave us a maximum number, enforce it:
+    if (max >= 0 && n_strs > max)
+        n_strs = max;
+    if (n_strs == 0)
+        goto fail;
+
+    // If returning multiple strings, allocate retlist for them.
+    if (!return_single)
+        retlist = g_new0(gchar*, n_strs + 1);  // +1 for NULL-termination
+
+    // Convert each string in `strlist` to UTF-8
+    for (int i = 0; i < n_strs; i++)
+    {
+        gchar *original = strlist[i];
+        if (!original)
+            goto fail;  // Shouldn’t happen, but just in case
+
+        gchar *conv = NULL;
+
+        if (encoding == ENCODING_UTF8)
+        {
+            // Validate or truncate invalid UTF-8
+            const gchar *endp;
+            g_utf8_validate(original, -1, &endp);
+            conv = g_strndup(original, endp - original);
+        }
+        else if (encoding == ENCODING_LOCALE)
+        {
+            // Convert from locale codeset to UTF-8
+            gsize nvalid = 0;
+            conv = g_locale_to_utf8(original, -1, &nvalid, NULL, NULL);
+            if (!conv) {
+                // If it failed part-way, try partial conversion
+                conv = g_locale_to_utf8(original, nvalid, NULL, NULL, NULL);
+                if (!conv)
+                    goto fail;
             }
         }
-    }
-
-    if (!(ok && retlist)) {
-        if (strlist) XFreeStringList(strlist);
-        return NULL;
-    }
-
-    /* convert each element in retlist to UTF-8, and replace it. */
-    for (i = 0; i < n_strs; ++i) {
-        if (encoding == UTF8) {
-            const gchar *end; /* the first byte past the valid data */
-
-            g_utf8_validate(retlist[i], -1, &end);
-            retlist[i] = g_strndup(retlist[i], end-retlist[i]);
-        }
-        else if (encoding == LOCALE) {
-            gsize nvalid; /* the number of valid bytes at the front of the
-                             string */
-            gchar *utf; /* the string converted into utf8 */
-
-            utf = g_locale_to_utf8(retlist[i], -1, &nvalid, NULL, NULL);
-            if (!utf)
-                utf = g_locale_to_utf8(retlist[i], nvalid, NULL, NULL, NULL);
-            g_assert(utf);
-            retlist[i] = utf;
-        }
-        else { /* encoding == LATIN1 */
-            gsize nvalid; /* the number of valid bytes at the front of the
-                             string */
-            gchar *utf; /* the string converted into utf8 */
-            gchar *p; /* iterator */
-
-            /* look for invalid characters */
-            for (p = retlist[i], nvalid = 0; *p; ++p, ++nvalid) {
-                /* The only valid control characters are TAB(HT)=9 and
-                   NEWLINE(LF)=10.
-                   This is defined in ICCCM section 2:
-                     http://tronche.com/gui/x/icccm/sec-2.html.
-                   See a definition of the latin1 codepage here:
-                     http://en.wikipedia.org/wiki/ISO/IEC_8859-1.
-                   The above page includes control characters in the table,
-                   which we must explicitly exclude, as the g_convert function
-                   will happily take them.
-                */
-                const register guchar c = (guchar)*p; /* unsigned value at p */
+        else  // ENCODING_LATIN1
+        {
+            // Check for or exclude invalid control chars etc.
+            gsize nvalid = 0;
+            for (gchar *p = original; *p; p++, nvalid++) {
+                const guchar c = (guchar)*p;
+                // Allowed controls: TAB=9, NEWLINE=10
                 if ((c < 32 && c != 9 && c != 10) || (c >= 127 && c <= 160))
-                    break; /* found a control character that isn't allowed */
-
+                    break;
                 if (type == OBT_PROP_TEXT_STRING_NO_CC && c < 32)
-                    break; /* absolutely no control characters are allowed */
-
+                    break;
                 if (type == OBT_PROP_TEXT_STRING_XPCS) {
-                    const gboolean valid = (
-                        (c >= 32 && c < 128) || c == 9 || c == 10);
+                    gboolean valid = ((c >= 32 && c < 128) || c == 9 || c == 10);
                     if (!valid)
-                        break; /* strict whitelisting for XPCS */
+                        break;
                 }
             }
-            /* look for invalid latin1 characters */
-            utf = g_convert(retlist[i], nvalid, "utf-8", "iso-8859-1",
-                            &nvalid, NULL, NULL);
-            if (!utf)
-                utf = g_convert(retlist[i], nvalid, "utf-8", "iso-8859-1",
-                                NULL, NULL, NULL);
-            g_assert(utf);
-            retlist[i] = utf;
+            conv = g_convert(original, nvalid, "UTF-8", "ISO-8859-1", NULL, NULL, NULL);
+            if (!conv) {
+                // Try one more time with the partial length
+                conv = g_convert(original, nvalid, "UTF-8", "ISO-8859-1", NULL, NULL, NULL);
+                if (!conv)
+                    goto fail;
+            }
+        }
+
+        if (return_single) {
+            // We only care about the first string for max == 1
+            single_str = conv;
+            break;
+        } else {
+            // Place into the array
+            retlist[i] = conv;
         }
     }
 
-    if (strlist) XFreeStringList(strlist);
-    if (return_single)
-        return retlist[0];
-    else
-        return retlist;
+    // Clean up the strlist array (depends on how we got it)
+    if (strlist) {
+        if (use_xfree)
+            XFreeStringList(strlist);  // Freed all X-allocated memory
+        else
+            g_free(strlist);           // Freed our g_new0() array
+    }
+    strlist = NULL;
+
+    // Return results
+    if (return_single) {
+        return single_str;   // A single heap-allocated string
+    } else {
+        return retlist;      // A null-terminated array of strings
+    }
+
+    // On failure, free everything properly:
+fail:
+    if (strlist) {
+        // Free the array with the matching method
+        if (use_xfree)
+            XFreeStringList(strlist);
+        else
+            g_free(strlist);
+    }
+    if (retlist) {
+        for (int j = 0; j < n_strs; j++)
+            g_free(retlist[j]);  // free each converted string
+        g_free(retlist);
+    }
+    g_free(single_str);
+
+    return NULL;
 }
+
 
 gboolean obt_prop_get32(Window win, Atom prop, Atom type, guint32 *ret)
 {
