@@ -300,7 +300,7 @@ static void parse_menu_item(xmlNodePtr node, gpointer data)
                 c = obt_xml_find_node(c->next, "action");
             }
             e = menu_add_normal(state->parent, -1, label, acts, TRUE);
-            
+
             if (config_menu_show_icons &&
                 obt_xml_attr_string(node, "icon", &icon))
             {
@@ -408,39 +408,47 @@ ObMenu* menu_new(const gchar *name, const gchar *title,
        more_menu->more_menu will always be NULL, since there is only 1 for
        each menu. */
     self->more_menu = g_slice_new0(ObMenu);
-    self->more_menu->name = _("More...");
-    self->more_menu->title = _("More...");
-    self->more_menu->collate_key = "\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff";
-    self->more_menu->data = data;
-    self->more_menu->shortcut = g_unichar_tolower(g_utf8_get_char("M"));
+	/* Duplicates the translation so we can safely free later. */
+	self->more_menu->name  = g_strdup(_("More..."));
+	self->more_menu->title = g_strdup(_("More..."));
+
+	/* If you want to avoid warnings for collate_key (a literal), also duplicate it: */
+	self->more_menu->collate_key = g_strdup("\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff");
+
+	self->more_menu->data = data;
+	self->more_menu->shortcut = g_unichar_tolower(g_utf8_get_char("M"));
+
 
     return self;
 }
 
 static void menu_destroy_hash_value(ObMenu *self)
 {
-    /* make sure its not visible */
-    {
-        GList *it;
-        ObMenuFrame *f;
-
-        for (it = menu_frame_visible; it; it = g_list_next(it)) {
-            f = it->data;
-            if (f->menu == self)
-                menu_frame_hide_all();
-        }
-    }
+    /* make sure it’s not visible */
 
     if (self->destroy_func)
         self->destroy_func(self, self->data);
 
+    /* Free all entries in this menu */
     menu_clear_entries(self);
+
+    /* Free normal fields for the main menu */
     g_free(self->name);
     g_free(self->title);
     g_free(self->collate_key);
     g_free(self->execute);
-    g_slice_free(ObMenu, self->more_menu);
 
+    /* Now free the fields for the self->more_menu struct */
+    if (self->more_menu) {
+        g_free(self->more_menu->name);
+        g_free(self->more_menu->title);
+        g_free(self->more_menu->collate_key);
+        g_free(self->more_menu->execute);
+
+        g_slice_free(ObMenu, self->more_menu);
+    }
+
+    /* Finally free the main menu struct itself */
     g_slice_free(ObMenu, self);
 }
 
