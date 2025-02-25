@@ -510,13 +510,16 @@ ImlibLoader* LoadWithImlib(gchar *path,
 #endif  /* USE_IMLIB2 */
 
 #if defined(USE_LIBRSVG)
+
+#include <math.h>
+
 typedef struct _RsvgLoader RsvgLoader;
 
 struct _RsvgLoader
 {
-    RsvgHandle *handle;
+    RsvgHandle      *handle;
     cairo_surface_t *surface;
-    RrPixel32 *pixel_data;
+    RrPixel32       *pixel_data;
 };
 
 void DestroyRsvgLoader(RsvgLoader *loader)
@@ -530,86 +533,169 @@ void DestroyRsvgLoader(RsvgLoader *loader)
         cairo_surface_destroy(loader->surface);
     if (loader->handle)
         g_object_unref(loader->handle);
+
     g_slice_free(RsvgLoader, loader);
 }
 
+/**
+ * LoadWithRsvg
+ *
+ * Reads an SVG file from disk at `path`, uses librsvg to render it into a
+ * cairo surface, and converts that surface from premultiplied ARGB into
+ * the RrPixel32 format. Returns an RsvgLoader struct with the relevant data.
+ *
+ * @param path       Path to the SVG file on disk
+ * @param pixel_data Out-parameter: pointer to the rendered RGBA data
+ * @param width      Out-parameter: final rendered width
+ * @param height     Out-parameter: final rendered height
+ *
+ * @return RsvgLoader*, or NULL on error.
+ */
 RsvgLoader* LoadWithRsvg(gchar *path,
                          RrPixel32 **pixel_data,
                          gint *width,
                          gint *height)
 {
-    RsvgLoader *loader = g_slice_new0(RsvgLoader);
+    GError      *error  = NULL;
+    RsvgLoader  *loader = g_slice_new0(RsvgLoader);
+    gdouble      svg_w   = 0.0;
+    gdouble      svg_h   = 0.0;
 
-    if (!(loader->handle = rsvg_handle_new_from_file(path, NULL))) {
+    // Create an empty RsvgHandle
+    loader->handle = rsvg_handle_new();
+    if (!loader->handle) {
+        g_warning("Failed to create new RsvgHandle.");
         DestroyRsvgLoader(loader);
         return NULL;
     }
 
-    if (!rsvg_handle_close(loader->handle, NULL)) {
+    // Open the file with GIO, producing a GInputStream
+    GFile *file = g_file_new_for_path(path);
+    if (!file) {
+        g_warning("Failed to create GFile for path '%s'", path);
         DestroyRsvgLoader(loader);
         return NULL;
     }
 
-    RsvgDimensionData dimension_data;
-    rsvg_handle_get_dimensions(loader->handle, &dimension_data);
-    *width = dimension_data.width;
-    *height = dimension_data.height;
+    GInputStream *stream = G_INPUT_STREAM(g_file_read(file, NULL, &error));
+    g_object_unref(file);  /* Done with the GFile itself. */
 
-    loader->surface = cairo_image_surface_create(
-        CAIRO_FORMAT_ARGB32, *width, *height);
-
-    cairo_t* context = cairo_create(loader->surface);
-    gboolean success = rsvg_handle_render_cairo(loader->handle, context);
-    cairo_destroy(context);
-
-    if (!success) {
+    if (!stream) {
+        g_warning("Could not open file '%s': %s",
+                  path,
+                  error ? error->message : "unknown error");
+        if (error) {
+            g_clear_error(&error);
+        }
         DestroyRsvgLoader(loader);
         return NULL;
     }
 
-    loader->pixel_data = g_new(guint32, *width * *height);
+    // Read the stream synchronously into the RsvgHandle
+    if (!rsvg_handle_read_stream_sync(loader->handle, stream, NULL, &error)) {
+        g_warning("Error reading SVG from '%s': %s",
+                  path,
+                  error ? error->message : "unknown error");
+        if (error) {
+            g_clear_error(&error);
+        }
+        g_input_stream_close(stream, NULL, NULL);
+        g_object_unref(stream);
+        DestroyRsvgLoader(loader);
+        return NULL;
+    }
 
-    /*
-      Cairo has its data in ARGB with premultiplied alpha, but RrPixel32
-      non-premultipled, so convert that. Also, RrPixel32 doesn't allow
-      strides not equal to the width of the image.
-    */
+    // Close and unref the stream now that we're done
+    g_input_stream_close(stream, NULL, NULL);
+    g_object_unref(stream);
 
-    /* Verify that RrPixel32 has the same ordering as cairo. */
+    // Try to get the intrinsic size, if specified in the SVG
+    if (!rsvg_handle_get_intrinsic_size_in_pixels(loader->handle, &svg_w, &svg_h) ||
+        svg_w <= 0.0 || svg_h <= 0.0)
+    {
+        // If the SVG uses percentages or lacks explicit width/height, pick a fallback
+        svg_w = 100.0;
+        svg_h = 100.0;
+    }
+
+    // Round up to get integer pixel dimensions
+    *width  = (gint)ceil(svg_w);
+    *height = (gint)ceil(svg_h);
+
+    // Create a Cairo surface in ARGB32 for the final rendering
+    loader->surface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32,
+                                                 *width,
+                                                 *height);
+
+    cairo_t *cr = cairo_create(loader->surface);
+
+    // Render the full SVG document into that surface
+    {
+        RsvgRectangle viewport;
+        viewport.x = 0.0;
+        viewport.y = 0.0;
+        viewport.width  = (double)*width;
+        viewport.height = (double)*height;
+
+        if (!rsvg_handle_render_document(loader->handle, cr, &viewport, &error)) {
+            g_warning("Error rendering SVG '%s': %s",
+                      path,
+                      error ? error->message : "unknown error");
+            if (error) {
+                g_clear_error(&error);
+            }
+            cairo_destroy(cr);
+            DestroyRsvgLoader(loader);
+            return NULL;
+        }
+    }
+
+    cairo_destroy(cr);
+
+    // Convert from Cairo's ARGB premultiplied data to RrPixel32 unpremultiplied RGBA
+    loader->pixel_data = g_new(guint32, (gsize)(*width) * (gsize)(*height));
+
+    // Ensure the channel layout matches
     g_assert(RrDefaultAlphaOffset == 24);
-    g_assert(RrDefaultRedOffset == 16);
+    g_assert(RrDefaultRedOffset   == 16);
     g_assert(RrDefaultGreenOffset == 8);
-    g_assert(RrDefaultBlueOffset == 0);
+    g_assert(RrDefaultBlueOffset  == 0);
 
     guint32 *out_row = loader->pixel_data;
+    guint32 *in_row  = (guint32 *) cairo_image_surface_get_data(loader->surface);
+    // Stride in bytes; convert to 32-bit words
+    gint in_stride   = cairo_image_surface_get_stride(loader->surface) / 4;
 
-    guint32 *in_row =
-        (guint32*)cairo_image_surface_get_data(loader->surface);
-    gint in_stride = cairo_image_surface_get_stride(loader->surface);
-
-    gint y;
-    for (y = 0; y < *height; ++y) {
-        gint x;
-        for (x = 0; x < *width; ++x) {
-            guchar a = in_row[x] >> 24;
+    for (int y = 0; y < *height; ++y) {
+        for (int x = 0; x < *width; ++x) {
+            guchar a = (in_row[x] >> 24) & 0xff;
             guchar r = (in_row[x] >> 16) & 0xff;
-            guchar g = (in_row[x] >> 8) & 0xff;
-            guchar b = in_row[x] & 0xff;
+            guchar g = (in_row[x] >>  8) & 0xff;
+            guchar b =  in_row[x]        & 0xff;
+
+            // Un-premultiply alpha if necessary. Original code uses "(channel * 256) / (a+1)"
+            if (a != 0) {
+                r = (r * 256) / (a + 1);
+                g = (g * 256) / (a + 1);
+                b = (b * 256) / (a + 1);
+            }
+
             out_row[x] =
-                ((r * 256 / (a + 1)) << RrDefaultRedOffset) +
-                ((g * 256 / (a + 1)) << RrDefaultGreenOffset) +
-                ((b * 256 / (a + 1)) << RrDefaultBlueOffset) +
-                (a << RrDefaultAlphaOffset);
+                ((r << RrDefaultRedOffset)   |
+                 (g << RrDefaultGreenOffset) |
+                 (b << RrDefaultBlueOffset)  |
+                 (a << RrDefaultAlphaOffset));
         }
-        in_row += in_stride / 4;
+        in_row  += in_stride;
         out_row += *width;
     }
 
+    // Pass the pixel data back to the caller
     *pixel_data = loader->pixel_data;
 
-    return loader;
+    return loader;  /* success */
 }
-#endif  /* USE_LIBRSVG */
+#endif /* USE_LIBRSVG */
 
 RrImage* RrImageNewFromName(RrImageCache *cache, const gchar *name)
 {
