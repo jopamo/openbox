@@ -281,23 +281,36 @@ gboolean obt_paths_mkdir_path(const gchar *path, gint mode)
     g_return_val_if_fail(path != NULL, FALSE);
     g_return_val_if_fail(path[0] == '/', FALSE);
 
-    if (!g_file_test(path, G_FILE_TEST_IS_DIR)) {
-        gchar *c, *e;
+    /* If the directory already exists, nothing to do */
+    if (g_file_test(path, G_FILE_TEST_IS_DIR))
+        return TRUE;
 
-        c = g_strdup(path);
-        e = c;
-        while ((e = strchr(e + 1, '/'))) {
-            *e = '\0';
-            if (!(ret = obt_paths_mkdir(c, mode)))
-                goto parse_mkdir_path_end;
-            *e = '/';
+    gchar *c = g_strdup(path);
+    if (!c)
+        return FALSE;  /* Allocation failure */
+
+    /* Create each sub-path progressively */
+    for (gchar *p = c + 1; *p; p++) {
+        if (*p == '/') {
+            *p = '\0';  /* Temporarily end the string here */
+            if (!obt_paths_mkdir(c, mode)) {
+                ret = FALSE;
+                /* Restore before breaking, to keep string memory consistent */
+                *p = '/';
+                break;
+            }
+            /* Restore the slash for further iteration */
+            *p = '/';
         }
-        ret = obt_paths_mkdir(c, mode);
-
-    parse_mkdir_path_end:
-        g_free(c);
     }
 
+    /* Finally, create the complete path */
+    if (ret) {
+        if (!obt_paths_mkdir(c, mode))
+            ret = FALSE;
+    }
+
+    g_free(c);
     return ret;
 }
 
