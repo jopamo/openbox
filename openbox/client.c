@@ -905,7 +905,8 @@ static gboolean client_can_steal_focus(ObClient *self,
 
 /*! Returns a new structure containing the per-app settings for this client.
   The returned structure needs to be freed with g_free. */
-static ObAppSettings *client_get_settings_state(ObClient *self)
+static ObAppSettings *
+client_get_settings_state(ObClient *self)
 {
     ObAppSettings *settings;
     GSList *it;
@@ -921,43 +922,71 @@ static ObAppSettings *client_get_settings_state(ObClient *self)
                  app->group_name != NULL || app->group_class != NULL ||
                  (signed)app->type >= 0);
 
+        /* Each app->field is already a GPatternSpec*, so we call g_pattern_spec_match(). */
+
         if (app->name &&
-            !g_pattern_match(app->name, strlen(self->name), self->name, NULL))
-            match = FALSE;
-        else if (app->group_name &&
-            !g_pattern_match(app->group_name,
-                             strlen(self->group_name), self->group_name, NULL))
-            match = FALSE;
-        else if (app->class &&
-                 !g_pattern_match(app->class,
-                                  strlen(self->class), self->class, NULL))
-            match = FALSE;
-        else if (app->group_class &&
-                 !g_pattern_match(app->group_class,
-                                  strlen(self->group_class), self->group_class,
+            !g_pattern_spec_match(app->name,
+                                  strlen(self->name),
+                                  self->name,
                                   NULL))
+        {
             match = FALSE;
+        }
+        else if (app->group_name &&
+                 !g_pattern_spec_match(app->group_name,
+                                       strlen(self->group_name),
+                                       self->group_name,
+                                       NULL))
+        {
+            match = FALSE;
+        }
+        else if (app->class &&
+                 !g_pattern_spec_match(app->class,
+                                       strlen(self->class),
+                                       self->class,
+                                       NULL))
+        {
+            match = FALSE;
+        }
+        else if (app->group_class &&
+                 !g_pattern_spec_match(app->group_class,
+                                       strlen(self->group_class),
+                                       self->group_class,
+                                       NULL))
+        {
+            match = FALSE;
+        }
         else if (app->role &&
-                 !g_pattern_match(app->role,
-                                  strlen(self->role), self->role, NULL))
+                 !g_pattern_spec_match(app->role,
+                                       strlen(self->role),
+                                       self->role,
+                                       NULL))
+        {
             match = FALSE;
+        }
         else if (app->title && self->title &&
-                 !g_pattern_match(app->title,
-                                  strlen(self->title), self->title, NULL))
+                 !g_pattern_spec_match(app->title,
+                                       strlen(self->title),
+                                       self->title,
+                                       NULL))
+        {
             match = FALSE;
+        }
         else if ((signed)app->type >= 0 && app->type != self->type) {
             match = FALSE;
         }
 
         if (match) {
-            ob_debug("Window matching: %s", app->name);
-
-            /* copy the settings to our struct, overriding the existing
-               settings if they are not defaults */
+            ob_debug("Window matching: %s", "<some pattern>");
+            /*
+             * Copy the settings to our struct, overriding the existing
+             * settings if they are not defaults
+             */
             config_app_settings_copy_non_defaults(app, settings);
         }
     }
 
+    /* Apply the matched settings to the client. */
     if (settings->shade != -1)
         self->shaded = !!settings->shade;
     if (settings->decor != -1)
@@ -997,6 +1026,7 @@ static ObAppSettings *client_get_settings_state(ObClient *self)
         self->below = FALSE;
         self->above = TRUE;
     }
+
     return settings;
 }
 
