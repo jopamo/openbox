@@ -1,6 +1,12 @@
-AC_PREREQ([2.54])
-AC_INIT([openbox], [3.7], [http://bugzilla.icculus.org])
+AC_PREREQ([2.69])
+AC_INIT([openbox],
+        [3.7],
+        [http://bugzilla.icculus.org],
+        [openbox])
 AC_CONFIG_SRCDIR([openbox/openbox.c])
+
+# If macros are in an m4/ directory, let autoconf know:
+AC_CONFIG_MACRO_DIR([m4])
 
 AM_INIT_AUTOMAKE([foreign])
 AM_SILENT_RULES([yes])
@@ -96,7 +102,7 @@ LIBTOOL="$LIBTOOL --silent"
 
 AC_PROG_INSTALL
 
-AM_GNU_GETTEXT_VERSION(0.15)
+AM_GNU_GETTEXT_VERSION([0.15])
 AM_GNU_GETTEXT([external])
 
 dnl Check for system headers
@@ -131,7 +137,7 @@ dnl -------------------------------------------------------------------
 dnl Optional feature: Startup Notification
 dnl -------------------------------------------------------------------
 AC_ARG_ENABLE([startup-notification],
-  AC_HELP_STRING([--disable-startup-notification],
+  AS_HELP_STRING([--disable-startup-notification],
                  [disable the startup notification library [default=enabled]]),
   [enable_sn=$enableval],
   [enable_sn=yes]
@@ -156,7 +162,7 @@ dnl -------------------------------------------------------------------
 dnl Optional feature: Xcursor
 dnl -------------------------------------------------------------------
 AC_ARG_ENABLE([xcursor],
-  AC_HELP_STRING([--disable-xcursor],
+  AS_HELP_STRING([--disable-xcursor],
                  [disable use of the X Cursor library [default=enabled]]),
   [enable_xcursor=$enableval],
   [enable_xcursor=yes]
@@ -181,7 +187,7 @@ dnl -------------------------------------------------------------------
 dnl Optional feature: Imlib2
 dnl -------------------------------------------------------------------
 AC_ARG_ENABLE([imlib2],
-  AC_HELP_STRING([--disable-imlib2],
+  AS_HELP_STRING([--disable-imlib2],
                  [disable use of Imlib2 for loading icons [default=enabled]]),
   [enable_imlib2=$enableval],
   [enable_imlib2=yes]
@@ -211,7 +217,7 @@ dnl -------------------------------------------------------------------
 dnl Optional feature: librsvg
 dnl -------------------------------------------------------------------
 AC_ARG_ENABLE([librsvg],
-  AC_HELP_STRING([--disable-librsvg],
+  AS_HELP_STRING([--disable-librsvg],
                  [disable use of SVG image files [default=enabled]]),
   [enable_librsvg=$enableval],
   [enable_librsvg=yes]
