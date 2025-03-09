@@ -1,34 +1,43 @@
 #!/bin/sh
+#
+# openbox-autostart
+#
+# Minimal script to set a background color, then run Openbox-specific
+# autostart scripts and XDG autostart scripts.
 
-# Set a background color
-BG=""
-if which hsetroot >/dev/null 2>/dev/null; then
-  BG=hsetroot
-elif which esetroot >/dev/null 2>/dev/null; then
-  BG=esetroot
-elif which xsetroot >/dev/null 2>/dev/null; then
-  BG=xsetroot
+# Try to find a background-setting command
+BG_CMD=""
+if command -v hsetroot >/dev/null 2>&1; then
+    BG_CMD="hsetroot"
+elif command -v esetroot >/dev/null 2>&1; then
+    BG_CMD="esetroot"
+elif command -v xsetroot >/dev/null 2>&1; then
+    BG_CMD="xsetroot"
 fi
-test -z $BG || $BG -solid "#303030"
+
+# Set a black background if a command was found
+if [ -n "$BG_CMD" ]; then
+    "$BG_CMD" -solid "#000000"
+fi
 
 GLOBALAUTOSTART="@rcdir@/autostart"
-AUTOSTART="${XDG_CONFIG_HOME:-"$HOME/.config"}/openbox/autostart"
+USERAUTOSTART="${XDG_CONFIG_HOME:-"$HOME/.config"}/openbox/autostart"
 
-# Run the global openbox autostart script
-if test -f $GLOBALAUTOSTART; then
-    sh $GLOBALAUTOSTART
-elif test -f $GLOBALAUTOSTART.sh; then
-    sh $GLOBALAUTOSTART.sh
+# Run the global Openbox autostart script if it exists
+if [ -f "$GLOBALAUTOSTART" ]; then
+    sh "$GLOBALAUTOSTART"
+elif [ -f "$GLOBALAUTOSTART.sh" ]; then
+    sh "$GLOBALAUTOSTART.sh"
 fi
 
-# Run the user openbox autostart script
-if test -f $AUTOSTART; then
-    sh $AUTOSTART
-elif test -f $AUTOSTART.sh; then
-    sh $AUTOSTART.sh
+# Run the user Openbox autostart script if it exists
+if [ -f "$USERAUTOSTART" ]; then
+    sh "$USERAUTOSTART"
+elif [ -f "$USERAUTOSTART.sh" ]; then
+    sh "$USERAUTOSTART.sh"
 fi
 
-# Run the XDG autostart stuff.  These are found in /etc/xdg/autostart and
-# in $HOME/.config/autostart.  This requires PyXDG to be installed.
-# See openbox-xdg-autostart --help for more details.
+# Finally, run the XDG autostart items.
+# These are typically found in /etc/xdg/autostart and/or ~/.config/autostart.
+# This requires PyXDG to be installed.
 @libexecdir@/openbox-xdg-autostart "$@"

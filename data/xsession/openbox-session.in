@@ -1,22 +1,26 @@
 #!/bin/sh
+#
+# openbox-session: Minimal script to set up environment and run Openbox
 
-if test -n "$1"; then
-    echo "Syntax: openbox-session"
+# Exit if any command fails (optional but recommended)
+set -e
+
+# Check usage
+if [ -n "$1" ]; then
+    echo "Usage: $(basename "$0")"
     echo
-    echo "See the openbox-session(1) manpage for help."
-  exit
+    echo "See the openbox-session(1) manpage for details."
+    exit 1
 fi
 
-# Clean up after GDM
-xprop -root -remove _NET_NUMBER_OF_DESKTOPS \
-      -remove _NET_DESKTOP_NAMES \
-      -remove _NET_CURRENT_DESKTOP 2> /dev/null
+# Set up the environment (system-wide, then user-specific)
+if [ -r "@configdir@/openbox/environment" ]; then
+    . "@configdir@/openbox/environment"
+fi
 
-# Set up the environment
-A="@configdir@/openbox/environment"
-test -r $A && . $A
-A="${XDG_CONFIG_HOME:-"$HOME/.config"}/openbox/environment"
-test -r $A && . $A
+if [ -r "${XDG_CONFIG_HOME:-"$HOME/.config"}/openbox/environment" ]; then
+    . "${XDG_CONFIG_HOME:-"$HOME/.config"}/openbox/environment"
+fi
 
-# Run Openbox, and have it run the autostart stuff
-exec @bindir@/openbox --startup "@libexecdir@/openbox-autostart OPENBOX" "$@"
+# Finally, run Openbox and let it invoke the autostart script
+exec "@bindir@/openbox" --startup "@libexecdir@/openbox-autostart OPENBOX" "$@"

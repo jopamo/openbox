@@ -6,8 +6,6 @@ localedir       = $(datadir)/locale
 configdir       = $(sysconfdir)/xdg
 rcdir           = $(configdir)/openbox
 xsessionsdir    = $(datadir)/xsessions
-gnomesessiondir = $(datadir)/gnome-session/sessions
-gnomewmfilesdir = $(datadir)/gnome/wm-properties
 pkgconfigdir    = $(libdir)/pkgconfig
 obtpubincludedir= $(includedir)/openbox/@OBT_VERSION@/obt
 rrpubincludedir = $(includedir)/openbox/@RR_VERSION@/obrender
@@ -32,17 +30,13 @@ lib_LTLIBRARIES = \
 
 bin_PROGRAMS = \
 	openbox/openbox \
-	tools/gdm-control/gdm-control \
-	tools/gnome-panel-control/gnome-panel-control \
 	tools/obxprop/obxprop
 
 noinst_PROGRAMS = \
 	obt/obt_unittests
 
 nodist_bin_SCRIPTS = \
-	data/xsession/openbox-session \
-	data/xsession/openbox-gnome-session \
-	data/xsession/openbox-kde-session
+	data/xsession/openbox-session
 
 dist_rc_SCRIPTS = \
 	data/environment
@@ -328,15 +322,6 @@ obt_obt_unittests_SOURCES = \
 	obt/unittest_base.c \
 	obt/bsearch_unittest.c
 
-## gnome-panel-control ##
-
-tools_gnome_panel_control_gnome_panel_control_CPPFLAGS = \
-	$(X_CFLAGS)
-tools_gnome_panel_control_gnome_panel_control_LDADD = \
-	$(X_LIBS)
-tools_gnome_panel_control_gnome_panel_control_SOURCES = \
-	tools/gnome-panel-control/gnome-panel-control.c
-
 ## obxprop ##
 
 tools_obxprop_obxprop_CPPFLAGS = \
@@ -347,19 +332,6 @@ tools_obxprop_obxprop_LDADD = \
 	$(X_LIBS)
 tools_obxprop_obxprop_SOURCES = \
 	tools/obxprop/obxprop.c
-
-## gdm-control ##
-
-tools_gdm_control_gdm_control_CPPFLAGS = \
-	$(XAUTH_CFLAGS) \
-	$(X_CFLAGS) \
-	$(GLIB_CFLAGS)
-tools_gdm_control_gdm_control_LDADD = \
-	$(XAUTH_LIBS) \
-	$(X_LIBS) \
-	$(GLIB_LIBS)
-tools_gdm_control_gdm_control_SOURCES = \
-	tools/gdm-control/gdm-control.c
 
 
 ## default button masks ##
@@ -517,11 +489,11 @@ data/autostart/openbox-autostart: $(top_srcdir)/data/autostart/openbox-autostart
 
 %.desktop: %.desktop.in Makefile
 	@echo make: creating $@
-	@$(edit) $< >$@	
+	@$(edit) $< >$@
 
 %-session: %-session.in Makefile
 	@echo make: creating $@
-	@$(edit) $< >$@	
+	@$(edit) $< >$@
 
 %.1.in: %.1.sgml
 	@echo make: creating $@
@@ -529,19 +501,10 @@ data/autostart/openbox-autostart: $(top_srcdir)/data/autostart/openbox-autostart
 
 %.1: %.1.in Makefile
 	@echo make: creating $@
-	@$(edit) $< >$@	
-
-dist_gnomewmfiles_DATA = \
-	data/gnome-wm-properties/openbox.desktop
+	@$(edit) $< >$@
 
 nodist_xsessions_DATA = \
-	data/xsession/openbox.desktop \
-	data/xsession/openbox-gnome.desktop \
-	data/xsession/openbox-kde.desktop
-
-dist_gnomesession_DATA = \
-	data/gnome-session/openbox-gnome.session \
-	data/gnome-session/openbox-gnome-fallback.session
+	data/xsession/openbox.desktop
 
 dist_noinst_DATA = \
 	data/rc.xsd \
@@ -549,19 +512,11 @@ dist_noinst_DATA = \
 	data/autostart/autostart.in \
 	data/autostart/openbox-autostart.in \
 	data/xsession/openbox.desktop.in \
-	data/xsession/openbox-gnome.desktop.in \
-	data/xsession/openbox-kde.desktop.in \
 	data/xsession/openbox-session.in \
-	data/xsession/openbox-gnome-session.in \
-	data/xsession/openbox-kde-session.in \
 	doc/openbox.1.sgml \
 	doc/openbox.1.in \
 	doc/openbox-session.1.sgml \
 	doc/openbox-session.1.in \
-	doc/openbox-gnome-session.1.sgml \
-	doc/openbox-gnome-session.1.in \
-	doc/openbox-kde-session.1.sgml \
-	doc/openbox-kde-session.1.in \
 	doc/obxprop.1.sgml \
 	doc/obxprop.1.in \
 	obrender/version.h.in \
@@ -599,8 +554,6 @@ dist_doc_DATA = \
 nodist_man_MANS = \
 	doc/openbox.1 \
 	doc/openbox-session.1 \
-	doc/openbox-gnome-session.1 \
-	doc/openbox-kde-session.1 \
 	doc/obxprop.1
 
 EXTRA_DIST = \
