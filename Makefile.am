@@ -1,5 +1,11 @@
+## --------------------------------------------------------------------
+## Subdirectories
+## --------------------------------------------------------------------
 SUBDIRS = m4 po
 
+## --------------------------------------------------------------------
+## Directory variables
+## --------------------------------------------------------------------
 docxbmdir       = $(docdir)/xbm
 themedir        = $(datadir)/themes
 localedir       = $(datadir)/locale
@@ -13,14 +19,22 @@ pixmapdir       = $(datadir)/pixmaps
 xsddir          = $(datadir)/openbox
 appsdir         = $(datadir)/applications
 
+## Default theme
 theme = Clearlooks
 
+## --------------------------------------------------------------------
+## Automake options
+## --------------------------------------------------------------------
 AUTOMAKE_OPTIONS = subdir-objects foreign
+ACLOCAL_AMFLAGS  = -I m4
 
-ACLOCAL_AMFLAGS = -I m4
-
+## INCLUDES is a classic Automake variable (older style).
+## You could instead define e.g. AM_CPPFLAGS if desired.
 INCLUDES = -I.
 
+## --------------------------------------------------------------------
+## Programs / libraries
+## --------------------------------------------------------------------
 check_PROGRAMS = \
 	obrender/rendertest
 
@@ -35,6 +49,7 @@ bin_PROGRAMS = \
 noinst_PROGRAMS = \
 	obt/obt_unittests
 
+## Scripts generated at build-time
 nodist_bin_SCRIPTS = \
 	data/xsession/openbox-session
 
@@ -50,13 +65,14 @@ dist_libexec_SCRIPTS = \
 nodist_libexec_SCRIPTS = \
 	data/autostart/openbox-autostart
 
-
-## obrender ##
-
+## --------------------------------------------------------------------
+## obrender/rendertest (check_PROGRAMS)
+## --------------------------------------------------------------------
 obrender_rendertest_CPPFLAGS = \
 	$(PANGO_CFLAGS) \
 	$(GLIB_CFLAGS) \
 	-DG_LOG_DOMAIN=\"RenderTest\"
+
 obrender_rendertest_LDADD = \
 	obt/libobt.la \
 	obrender/libobrender.la \
@@ -64,8 +80,13 @@ obrender_rendertest_LDADD = \
 	$(PANGO_LIBS) \
 	$(XML_LIBS) \
 	$(X_LIBS)
-obrender_rendertest_SOURCES = obrender/test.c
 
+obrender_rendertest_SOURCES = \
+	obrender/test.c
+
+## --------------------------------------------------------------------
+## libobrender.la
+## --------------------------------------------------------------------
 obrender_libobrender_la_CPPFLAGS = \
 	$(X_CFLAGS) \
 	$(GLIB_CFLAGS) \
@@ -75,8 +96,10 @@ obrender_libobrender_la_CPPFLAGS = \
 	$(LIBRSVG_CFLAGS) \
 	-DG_LOG_DOMAIN=\"ObRender\" \
 	-DDEFAULT_THEME=\"$(theme)\"
+
 obrender_libobrender_la_LDFLAGS = \
 	-version-info $(RR_CURRENT):$(RR_REVISION):$(RR_AGE)
+
 obrender_libobrender_la_LIBADD = \
 	obt/libobt.la \
 	$(X_LIBS) \
@@ -85,6 +108,7 @@ obrender_libobrender_la_LIBADD = \
 	$(IMLIB2_LIBS) \
 	$(LIBRSVG_LIBS) \
 	$(XML_LIBS)
+
 obrender_libobrender_la_SOURCES = \
 	gettext.h \
 	obrender/button.c \
@@ -109,8 +133,9 @@ obrender_libobrender_la_SOURCES = \
 	obrender/theme.h \
 	obrender/theme.c
 
-## obt ##
-
+## --------------------------------------------------------------------
+## libobt.la
+## --------------------------------------------------------------------
 obt_libobt_la_CPPFLAGS = \
 	$(X_CFLAGS) \
 	$(XINERAMA_CFLAGS) \
@@ -124,8 +149,10 @@ obt_libobt_la_CPPFLAGS = \
 	-DLOCALEDIR=\"$(localedir)\" \
 	-DDATADIR=\"$(datadir)\" \
 	-DCONFIGDIR=\"$(configdir)\"
+
 obt_libobt_la_LDFLAGS = \
 	-version-info $(OBT_CURRENT):$(OBT_REVISION):$(OBT_AGE)
+
 obt_libobt_la_LIBADD = \
 	$(X_LIBS) \
 	$(XINERAMA_LIBS) \
@@ -135,6 +162,7 @@ obt_libobt_la_LIBADD = \
 	$(XSYNC_LIBS) \
 	$(GLIB_LIBS) \
 	$(XML_LIBS)
+
 obt_libobt_la_SOURCES = \
 	obt/bsearch.h \
 	obt/display.h \
@@ -158,8 +186,9 @@ obt_libobt_la_SOURCES = \
 	obt/xqueue.h \
 	obt/xqueue.c
 
-## openbox ##
-
+## --------------------------------------------------------------------
+## openbox (the main binary)
+## --------------------------------------------------------------------
 openbox_openbox_CPPFLAGS = \
 	$(SM_CFLAGS) \
 	$(X_CFLAGS) \
@@ -173,6 +202,7 @@ openbox_openbox_CPPFLAGS = \
 	-DDATADIR=\"$(datadir)\" \
 	-DCONFIGDIR=\"$(configdir)\" \
 	-DG_LOG_DOMAIN=\"Openbox\"
+
 openbox_openbox_LDADD = \
 	$(XINERAMA_LIBS) \
 	$(XRANDR_LIBS) \
@@ -186,7 +216,9 @@ openbox_openbox_LDADD = \
 	$(LIBINTL) \
 	obrender/libobrender.la \
 	obt/libobt.la
+
 openbox_openbox_LDFLAGS = -export-dynamic
+
 openbox_openbox_SOURCES = \
 	gettext.h \
 	openbox/actions/all.c \
@@ -305,64 +337,72 @@ openbox_openbox_SOURCES = \
 	openbox/window.c \
 	openbox/window.h
 
-## obt_unittests ##
-
+## --------------------------------------------------------------------
+## obt_unittests (noinst_PROGRAMS)
+## --------------------------------------------------------------------
 obt_obt_unittests_CPPFLAGS = \
 	$(GLIB_CFLAGS) \
 	-DLOCALEDIR=\"$(localedir)\" \
 	-DDATADIR=\"$(datadir)\" \
 	-DCONFIGDIR=\"$(configdir)\" \
 	-DG_LOG_DOMAIN=\"Obt-Unittests\"
+
 obt_obt_unittests_LDADD = \
 	$(GLIB_LIBS) \
 	obt/libobt.la
+
 obt_obt_unittests_LDFLAGS = -export-dynamic
+
 obt_obt_unittests_SOURCES = \
 	obt/unittest_base.h \
 	obt/unittest_base.c \
 	obt/bsearch_unittest.c
 
-## obxprop ##
-
+## --------------------------------------------------------------------
+## obxprop (tools/obxprop)
+## --------------------------------------------------------------------
 tools_obxprop_obxprop_CPPFLAGS = \
 	$(GLIB_CFLAGS) \
 	$(X_CFLAGS)
+
 tools_obxprop_obxprop_LDADD = \
 	$(GLIB_LIBS) \
 	$(X_LIBS)
+
 tools_obxprop_obxprop_SOURCES = \
 	tools/obxprop/obxprop.c
 
-
-## default button masks ##
+## --------------------------------------------------------------------
+## Distributable XBM Files
+## --------------------------------------------------------------------
 dist_docxbm_DATA = \
-        data/xbm/bullet.xbm \
-        data/xbm/close.xbm \
-        data/xbm/desk_toggled.xbm \
-        data/xbm/desk.xbm \
-        data/xbm/iconify.xbm \
-        data/xbm/max_toggled.xbm \
-        data/xbm/max.xbm \
-        data/xbm/shade_toggled.xbm \
-        data/xbm/shade.xbm
+	data/xbm/bullet.xbm \
+	data/xbm/close.xbm \
+	data/xbm/desk_toggled.xbm \
+	data/xbm/desk.xbm \
+	data/xbm/iconify.xbm \
+	data/xbm/max_toggled.xbm \
+	data/xbm/max.xbm \
+	data/xbm/shade_toggled.xbm \
+	data/xbm/shade.xbm
 
-
-## themes ##
-
+## --------------------------------------------------------------------
+## Themes
+## --------------------------------------------------------------------
 clearlooks_themedir = $(themedir)/Clearlooks/openbox-3
-dist_clearlooks_theme_DATA= \
+dist_clearlooks_theme_DATA = \
 	themes/Clearlooks/openbox-3/themerc
 
 clearlooks34_themedir = $(themedir)/Clearlooks-3.4/openbox-3
-dist_clearlooks34_theme_DATA= \
+dist_clearlooks34_theme_DATA = \
 	themes/Clearlooks-3.4/openbox-3/themerc
 
 clearlooksolive_themedir = $(themedir)/Clearlooks-Olive/openbox-3
-dist_clearlooksolive_theme_DATA= \
+dist_clearlooksolive_theme_DATA = \
 	themes/Clearlooks-Olive/openbox-3/themerc
 
 mikachu_themedir = $(themedir)/Mikachu/openbox-3
-dist_mikachu_theme_DATA= \
+dist_mikachu_theme_DATA = \
 	themes/Mikachu/openbox-3/bullet.xbm \
 	themes/Mikachu/openbox-3/close.xbm \
 	themes/Mikachu/openbox-3/desk.xbm \
@@ -370,9 +410,8 @@ dist_mikachu_theme_DATA= \
 	themes/Mikachu/openbox-3/max.xbm \
 	themes/Mikachu/openbox-3/themerc
 
-
 natura_themedir = $(themedir)/Natura/openbox-3
-dist_natura_theme_DATA= \
+dist_natura_theme_DATA = \
 	themes/Natura/openbox-3/close_hover.xbm \
 	themes/Natura/openbox-3/close.xbm \
 	themes/Natura/openbox-3/desk_toggled.xbm \
@@ -388,11 +427,11 @@ dist_natura_theme_DATA= \
 	themes/Natura/openbox-3/themerc
 
 artwizboxed_themedir = $(themedir)/Artwiz-boxed/openbox-3
-dist_artwizboxed_theme_DATA= \
+dist_artwizboxed_theme_DATA = \
 	themes/Artwiz-boxed/openbox-3/themerc
 
 bear2_themedir = $(themedir)/Bear2/openbox-3
-dist_bear2_theme_DATA= \
+dist_bear2_theme_DATA = \
 	themes/Bear2/openbox-3/close_pressed.xbm \
 	themes/Bear2/openbox-3/close.xbm \
 	themes/Bear2/openbox-3/desk_toggled.xbm \
@@ -407,27 +446,28 @@ dist_bear2_theme_DATA= \
 	themes/Bear2/openbox-3/themerc
 
 orang_themedir = $(themedir)/Orang/openbox-3
-dist_orang_theme_DATA= \
+dist_orang_theme_DATA = \
 	themes/Orang/openbox-3/themerc
 
 onyx_themedir = $(themedir)/Onyx/openbox-3
-dist_onyx_theme_DATA= \
+dist_onyx_theme_DATA = \
 	themes/Onyx/openbox-3/themerc
 
 onyxcitrus_themedir = $(themedir)/Onyx-Citrus/openbox-3
-dist_onyxcitrus_theme_DATA= \
+dist_onyxcitrus_theme_DATA = \
 	themes/Onyx-Citrus/openbox-3/themerc
 
 syscrash_themedir = $(themedir)/Syscrash/openbox-3
-dist_syscrash_theme_DATA= \
+dist_syscrash_theme_DATA = \
 	themes/Syscrash/openbox-3/max_disabled.xbm \
 	themes/Syscrash/openbox-3/max_pressed.xbm \
 	themes/Syscrash/openbox-3/max_toggled.xbm \
 	themes/Syscrash/openbox-3/max.xbm \
 	themes/Syscrash/openbox-3/themerc
 
-## public headers ##
-
+## --------------------------------------------------------------------
+## Public Headers
+## --------------------------------------------------------------------
 rrpubinclude_HEADERS = \
 	obrender/color.h \
 	obrender/font.h \
@@ -456,8 +496,9 @@ nodist_pkgconfig_DATA = \
 	obrender/obrender-3.5.pc \
 	obt/obt-3.5.pc
 
-## data ##
-
+## --------------------------------------------------------------------
+## Data files
+## --------------------------------------------------------------------
 dist_apps_DATA = \
 	data/openbox.desktop
 
@@ -468,6 +509,10 @@ dist_rc_DATA = \
 	data/rc.xml \
 	data/menu.xml
 
+## --------------------------------------------------------------------
+## Script-building rules
+##   Using the 'edit' variable with sed replacements.
+## --------------------------------------------------------------------
 edit = $(SED) \
 	-e 's!@version\@!$(VERSION)!' \
 	-e 's!@configdir\@!$(configdir)!' \
@@ -476,36 +521,39 @@ edit = $(SED) \
 	-e 's!@bindir\@!$(bindir)!'
 
 data/autostart/autostart: $(top_srcdir)/data/autostart/autostart.in Makefile
-	@echo make: creating $@
+	@echo "make: creating $@"
 	@test -d $(shell dirname $(top_builddir)/$@) || \
 	  mkdir $(shell dirname $(top_builddir)/$@)
 	@$(edit) $< >$(top_builddir)/$@
 
 data/autostart/openbox-autostart: $(top_srcdir)/data/autostart/openbox-autostart.in Makefile
-	@echo make: creating $@
+	@echo "make: creating $@"
 	@test -d $(shell dirname $(top_builddir)/$@) || \
 	  mkdir $(shell dirname $(top_builddir)/$@)
 	@$(edit) $< >$(top_builddir)/$@
 
 %.desktop: %.desktop.in Makefile
-	@echo make: creating $@
+	@echo "make: creating $@"
 	@$(edit) $< >$@
 
 %-session: %-session.in Makefile
-	@echo make: creating $@
+	@echo "make: creating $@"
 	@$(edit) $< >$@
 
 %.1.in: %.1.sgml
-	@echo make: creating $@
+	@echo "make: creating $@"
 	@docbook-to-man $< >$@
 
 %.1: %.1.in Makefile
-	@echo make: creating $@
+	@echo "make: creating $@"
 	@$(edit) $< >$@
 
 nodist_xsessions_DATA = \
 	data/xsession/openbox.desktop
 
+## --------------------------------------------------------------------
+## Extra distributed & non-installed files
+## --------------------------------------------------------------------
 dist_noinst_DATA = \
 	data/rc.xsd \
 	data/menu.xsd \
@@ -559,8 +607,10 @@ nodist_man_MANS = \
 EXTRA_DIST = \
 	config.rpath
 
-# make clean doesn't delete these for some reason, even though they are
-# built by make
+## --------------------------------------------------------------------
+## Cleaning
+## --------------------------------------------------------------------
+# These are built by make, so ensure they’re removed.
 CLEANFILES = \
 	$(nodist_man_MANS) \
 	$(nodist_bin_SCRIPTS) \
@@ -568,12 +618,12 @@ CLEANFILES = \
 	$(nodist_rc_SCRIPTS) \
 	$(nodist_libexec_SCRIPTS)
 
-#doc:
-#       $(MAKE) -$(MAKEFLAGS) -C doc/doxygen doc
+# doc:
+# 	$(MAKE) -$(MAKEFLAGS) -C doc/doxygen doc
 
 distclean-local:
 	for d in . m4 po obrender parser obt openbox; do \
-		for p in core core.* gmon.out *\~ *.orig *.rej .\#*; do \
+		for p in core core.* gmon.out *~ *.orig *.rej .\#*; do \
 			rm -f "$$d/$$p"; \
 		done \
 	done
