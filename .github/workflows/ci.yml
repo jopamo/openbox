@@ -1,0 +1,110 @@
+name: CI
+
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+  workflow_dispatch:
+
+jobs:
+  build-and-test:
+    strategy:
+      matrix:
+        sanitizer: [ "none", "asan-ubsan", "valgrind" ]
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4.1.6
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            autoconf automake libtool build-essential pkg-config \
+            clang gcc valgrind \
+            libx11-dev libpango1.0-dev libglib2.0-dev \
+            libstartup-notification0-dev libxrandr-dev libxinerama-dev \
+            libxcursor-dev libimlib2-dev librsvg2-dev \
+            xvfb
+
+      - name: Run autoreconf if configure is missing
+        run: |
+          if [ ! -f configure ]; then
+            autoreconf -i
+          fi
+
+      - name: Configure & build
+        shell: bash
+        run: |
+          # Choose a compiler; clang often works best with sanitizers,
+          # but you can also use GCC if you prefer.
+          if [ "${{ matrix.sanitizer }}" = "asan-ubsan" ]; then
+            export CC=clang
+            export CFLAGS="-g -fsanitize=address,undefined"
+            export LDFLAGS="-fsanitize=address,undefined"
+          else
+            # Normal (no sanitizers) or valgrind instrumentation can still use GCC or Clang
+            export CC=gcc
+            export CFLAGS="-g"   # keep debug info for valgrind
+            export LDFLAGS=""
+          fi
+
+          # Configure
+          ./configure --prefix=/usr/local
+
+          # Build
+          make -j"$(nproc)"
+
+      - name: Launch Xvfb and run tests
+        shell: bash
+        run: |
+          # Start a virtual X server
+          xvfb-run --auto-servernum --server-args="-screen 0 1280x800x24" bash -c "
+
+            # 1) Launch Openbox in background
+            openbox --replace &
+            sleep 2
+
+            # 2) Build the test executables in ./tests
+            cd tests
+            make -j16
+
+            # 3) Now run them with sanitizers/valgrind if requested:
+            if [ \"${{ matrix.sanitizer }}\" = \"asan-ubsan\" ]; then
+              # Use strict options for ASan/UBSan
+              export ASAN_OPTIONS=detect_leaks=1:halt_on_error=1:detect_odr_violation=1
+              export UBSAN_OPTIONS=print_stacktrace=1:halt_on_error=1
+              # Just run them directly
+              for test_exe in \$(ls -1 | grep -v '\\.c' | grep -v Makefile | grep -v '\\.py' | grep -v '\\.sh'); do
+                if [ -x \"\$test_exe\" ]; then
+                  echo \"[ASan/UBSan] Running \$test_exe...\"
+                  ./\$test_exe
+                fi
+              done
+
+            elif [ \"${{ matrix.sanitizer }}\" = \"valgrind\" ]; then
+              # Run test executables under valgrind
+              for test_exe in \$(ls -1 | grep -v '\\.c' | grep -v Makefile | grep -v '\\.py' | grep -v '\\.sh'); do
+                if [ -x \"\$test_exe\" ]; then
+                  echo \"[Valgrind] Running \$test_exe...\"
+                  valgrind --quiet --error-exitcode=1 --leak-check=full --track-origins=yes ./\$test_exe
+                fi
+              done
+
+            else
+              # Normal run (no sanitizers)
+              for test_exe in \$(ls -1 | grep -v '\\.c' | grep -v Makefile | grep -v '\\.py' | grep -v '\\.sh'); do
+                if [ -x \"\$test_exe\" ]; then
+                  echo \"[Normal] Running \$test_exe...\"
+                  ./\$test_exe
+                fi
+              done
+            fi
+          "
+
+      - uses: actions/upload-artifact@v4.3.3
+        if: ${{ failure() }}
+        with:
+          name: "${{ matrix.sanitizer }}-logs"
+          path: .

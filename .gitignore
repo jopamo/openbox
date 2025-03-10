@@ -103,5 +103,6 @@ tests/title
 tests/urgent
 tests/usertimewin
 tests/wmhints
+tests/stackabove
 tools/obxprop/obxprop
 version.h
