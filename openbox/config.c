@@ -1007,14 +1007,22 @@ static void bind_default_keyboard(void)
 {
     ObDefKeyBind *it;
     ObDefKeyBind binds[] = {
-        { "A-Tab", "NextWindow" },
+        { "A-Tab",   "NextWindow"     },
         { "S-A-Tab", "PreviousWindow" },
-        { "A-F4", "Close" },
+        { "A-F4",    "Close"          },
         { NULL, NULL }
     };
+
     for (it = binds; it->key; ++it) {
-        GList *l = g_list_append(NULL, g_strdup(it->key));
+        // Create a fresh list containing just the new key string
+        char *key_copy = g_strdup(it->key);
+        GList *l = g_list_append(NULL, key_copy);
+
+        // Pass it to keyboard_bind
         keyboard_bind(l, actions_parse_string(it->actname), TRUE);
+
+        // Free the GList + string immediately (so it won't leak)
+        g_list_free_full(l, g_free);
     }
 }
 
