@@ -46,19 +46,25 @@ static void log_handler(const gchar *log_domain, GLogLevelFlags log_level,
 static void prompt_handler(const gchar *log_domain, GLogLevelFlags log_level,
                            const gchar *message, gpointer user_data);
 
-void ob_debug_startup(void)
-{
+void ob_debug_startup(void) {
     ObtPaths *p = obt_paths_new();
-    gchar *dir = g_build_filename(obt_paths_cache_home(p),
-                                  "openbox", NULL);
+    gchar *cache_home = obt_paths_cache_home(p);
+
+    // Check if cache_home is NULL or uninitialized
+    if (cache_home == NULL) {
+        g_warning("Failed to get cache home directory");
+        obt_paths_unref(p);
+        return; // or handle the error appropriately
+    }
+
+    gchar *dir = g_build_filename(cache_home, "openbox", NULL);
 
     /* log messages to a log file!  fancy, no? */
-    if (!obt_paths_mkdir_path(dir, 0777))
+    if (!obt_paths_mkdir_path(dir, 0777)) {
         g_message(_("Unable to make directory '%s': %s"),
                   dir, g_strerror(errno));
-    else {
-        gchar *name = g_build_filename(obt_paths_cache_home(p),
-                                       "openbox", "openbox.log", NULL);
+    } else {
+        gchar *name = g_build_filename(cache_home, "openbox", "openbox.log", NULL);
         /* unlink it before opening to remove competition */
         unlink(name);
         log_file = fopen(name, "w");
