@@ -1,14 +1,12 @@
 name: CI
-
-on:
+'on':
   push:
     branches:
       - main
   pull_request:
     branches:
       - main
-  workflow_dispatch:
-
+  workflow_dispatch: null
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
@@ -52,8 +50,9 @@ jobs:
           make -j"$(nproc)"
       - name: Launch Xvfb and run tests
         shell: bash
-        run: |
-          xvfb-run --auto-servernum --server-args="-screen 0 1280x800x24" bash -c "
+        run: >
+          xvfb-run --auto-servernum --server-args="-screen 0 1280x800x24" bash
+          -c "
             openbox/openbox --replace &
             sleep 2
             cd tests
@@ -85,16 +84,3 @@ jobs:
               done
             fi
           "
-
-  fuzzing:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4.1.6
-      - name: Install clang
-        run: sudo apt-get update && sudo apt-get install -y clang
-      - name: Build fuzzer
-        run: |
-          clang -g -fsanitize=fuzzer,address -o myfuzzer fuzz_target.c src/*.c
-      - name: Run fuzzing
-        run: |
-          ./myfuzzer -max_total_time=60

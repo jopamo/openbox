@@ -1,20 +1,4 @@
-/* -*- indent-tabs-mode: nil; tab-width: 4; c-basic-offset: 4; -*-
-
-   skiptaskbar.c for the Openbox window manager
-   Copyright (c) 2003-2007   Dana Jansens
-
-   This program is free software; you can redistribute it and/or modify
-   it under the terms of the GNU General Public License as published by
-   the Free Software Foundation; either version 2 of the License, or
-   (at your option) any later version.
-
-   This program is distributed in the hope that it will be useful,
-   but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-   GNU General Public License for more details.
-
-   See the COPYING file for a copy of the GNU General Public License.
-*/
+/* skiptaskbar.c for the Openbox window manager */
 
 #include <stdio.h>
 #include <X11/Xlib.h>
@@ -27,37 +11,51 @@ int main () {
   XEvent     report;
   Atom       state, skip;
   XClassHint classhint;
-  int        x=10,y=10,h=400,w=400;
+  int        x = 10, y = 10, h = 400, w = 400;
 
   display = XOpenDisplay(NULL);
 
   if (display == NULL) {
     fprintf(stderr, "couldn't connect to X server :0\n");
-    return 0;
+    return 1;  // Return 1 if there is an error with opening the display
   }
 
   state = XInternAtom(display, "_NET_WM_STATE", True);
   skip = XInternAtom(display, "_NET_WM_STATE_SKIP_TASKBAR", True);
 
+  if (state == None || skip == None) {
+    fprintf(stderr, "Failed to intern atoms\n");
+    return 1;  // Return 1 if atom intern failed
+  }
+
   win = XCreateWindow(display, RootWindow(display, 0),
                       x, y, w, h, 10, CopyFromParent, CopyFromParent,
-			 CopyFromParent, 0, 0);
+                      CopyFromParent, 0, NULL);
 
-  XSetWindowBackground(display,win,WhitePixel(display,0));
+  if (win == None) {
+    fprintf(stderr, "Failed to create window\n");
+    return 1;  // Return 1 if window creation fails
+  }
 
+  XSetWindowBackground(display, win, WhitePixel(display, 0));
+
+  // Set the _NET_WM_STATE_SKIP_TASKBAR property
   XChangeProperty(display, win, state, XA_ATOM, 32,
-		  PropModeReplace, (unsigned char*)&skip, 1);
+                  PropModeReplace, (unsigned char*)&skip, 1);
 
+  // Set window class hints
   classhint.res_name = "test";
   classhint.res_class = "Test";
   XSetClassHint(display, win, &classhint);
 
+  // Map the window and flush the output
   XMapWindow(display, win);
   XFlush(display);
 
+  // Event loop (keeps the window alive)
   while (1) {
     XNextEvent(display, &report);
   }
 
-  return 1;
+  return 0;
 }

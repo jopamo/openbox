@@ -1,20 +1,4 @@
-/* -*- indent-tabs-mode: nil; tab-width: 4; c-basic-offset: 4; -*-
-
-   modal.c for the Openbox window manager
-   Copyright (c) 2003-2007   Dana Jansens
-
-   This program is free software; you can redistribute it and/or modify
-   it under the terms of the GNU General Public License as published by
-   the Free Software Foundation; either version 2 of the License, or
-   (at your option) any later version.
-
-   This program is distributed in the hope that it will be useful,
-   but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-   GNU General Public License for more details.
-
-   See the COPYING file for a copy of the GNU General Public License.
-*/
+// modal.c for the Openbox window manager
 
 #include <stdio.h>
 #include <X11/Xlib.h>
@@ -26,7 +10,7 @@ int main () {
   Window     parent, child;
   XEvent     report;
   Atom       state, modal;
-  int        x=10,y=10,h=400,w=400;
+  int        x = 10, y = 10, h = 400, w = 400;
 
   display = XOpenDisplay(NULL);
 
@@ -35,27 +19,42 @@ int main () {
     return 0;
   }
 
+  // Intern atoms
   state = XInternAtom(display, "_NET_WM_STATE", True);
   modal = XInternAtom(display, "_NET_WM_STATE_MODAL", True);
 
+  // Check if atoms are valid
+  if (state == None || modal == None) {
+    fprintf(stderr, "Failed to intern atoms: _NET_WM_STATE or _NET_WM_STATE_MODAL\n");
+    return 1;
+  }
+
+  printf("Atoms successfully interned: _NET_WM_STATE = %lu, _NET_WM_STATE_MODAL = %lu\n", state, modal);
+
+  // Create windows
   parent = XCreateWindow(display, RootWindow(display, 0),
-			 x, y, w, h, 10, CopyFromParent, CopyFromParent,
-			 CopyFromParent, 0, 0);
+                         x, y, w, h, 10, CopyFromParent, CopyFromParent,
+                         CopyFromParent, 0, 0);
   child = XCreateWindow(display, RootWindow(display, 0),
-			x, y, w/2, h/2, 10, CopyFromParent, CopyFromParent,
-			CopyFromParent, 0, 0);
+                        x, y, w / 2, h / 2, 10, CopyFromParent, CopyFromParent,
+                        CopyFromParent, 0, 0);
 
-  XSetWindowBackground(display,parent,WhitePixel(display,0));
-  XSetWindowBackground(display,child,BlackPixel(display,0));
+  XSetWindowBackground(display, parent, WhitePixel(display, 0));
+  XSetWindowBackground(display, child, BlackPixel(display, 0));
 
+  // Set transient window hint
   XSetTransientForHint(display, child, parent);
-  XChangeProperty(display, child, state, XA_ATOM, 32,
-		  PropModeReplace, (unsigned char*)&modal, 1);
 
+  // Set modal state for the child window
+  XChangeProperty(display, child, state, XA_ATOM, 32,
+                  PropModeReplace, (unsigned char *)&modal, 1);
+
+  // Map windows
   XMapWindow(display, parent);
   XMapWindow(display, child);
   XFlush(display);
 
+  // Event loop
   while (1) {
     XNextEvent(display, &report);
   }
