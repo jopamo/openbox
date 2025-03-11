@@ -82,6 +82,8 @@
 #include <X11/Xcursor/Xcursor.h>
 #endif
 
+pthread_mutex_t rr_instance_mutex = PTHREAD_MUTEX_INITIALIZER;
+
 RrInstance   *ob_rr_inst;
 RrImageCache *ob_rr_icons;
 RrTheme      *ob_rr_theme;
@@ -177,6 +179,7 @@ gint main(gint argc, gchar **argv)
 
     ob_screen = DefaultScreen(obt_display);
 
+	pthread_mutex_lock(&rr_instance_mutex);
     ob_rr_inst = RrInstanceNew(obt_display, ob_screen);
     if (ob_rr_inst == NULL)
         ob_exit_with_error(_("Failed to initialize the obrender library."));
@@ -184,6 +187,8 @@ gint main(gint argc, gchar **argv)
        are generally 3 icon sizes needed: the titlebar icon, the menu icon,
        and the alt-tab icon
     */
+	pthread_mutex_unlock(&rr_instance_mutex);
+
     ob_rr_icons = RrImageCacheNew(3);
 
     XSynchronize(obt_display, xsync);
@@ -534,9 +539,6 @@ static void print_help(void)
     g_print(_("  --help              Display this help and exit\n"));
     g_print(_("  --version           Display the version and exit\n"));
     g_print(_("  --replace           Replace the currently running window manager\n"));
-    /* TRANSLATORS: if you translate "FILE" here, make sure to keep the "Specify..."
-       aligned still, if you have to, make a new line with \n and 22 spaces. It's
-       fine to leave it as FILE though. */
     g_print(_("  --config-file FILE  Specify the path to the config file to use\n"));
     g_print(_("  --sm-disable        Disable connection to the session manager\n"));
     g_print(_("\nPassing messages to a running Openbox instance:\n"));
