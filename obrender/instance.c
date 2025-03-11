@@ -210,15 +210,26 @@ static void RrPseudoColorSetup (RrInstance *inst)
     }
 }
 
-void RrInstanceFree (RrInstance *inst)
-{
-    if (inst) {
-        if (inst == definst) definst = NULL;
-        g_free(inst->pseudo_colors);
-        g_hash_table_destroy(inst->color_hash);
-        g_object_unref(inst->pango);
-        g_slice_free(RrInstance, inst);
+void RrInstanceFree( RrInstance *inst ) {
+  if ( inst ) {
+    if ( inst == definst ) {
+      definst = NULL;
     }
+
+    if ( inst->pseudo_colors ) {
+      g_free( inst->pseudo_colors );
+    }
+
+    if ( inst->color_hash ) {
+      g_hash_table_destroy( inst->color_hash );
+    }
+
+    if ( inst->pango ) {
+      g_object_unref( inst->pango );
+    }
+
+    g_slice_free( RrInstance, inst );
+  }
 }
 
 Display* RrDisplay (const RrInstance *inst)
