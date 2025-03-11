@@ -1,53 +1,34 @@
-/* -*- indent-tabs-mode: nil; tab-width: 4; c-basic-offset: 4; -*-
-
-   confignotify.c for the Openbox window manager
-   Copyright (c) 2003-2007   Dana Jansens
-
-   This program is free software; you can redistribute it and/or modify
-   it under the terms of the GNU General Public License as published by
-   the Free Software Foundation; either version 2 of the License, or
-   (at your option) any later version.
-
-   This program is distributed in the hope that it will be useful,
-   but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-   GNU General Public License for more details.
-
-   See the COPYING file for a copy of the GNU General Public License.
-*/
+// confignotify.c for the Openbox window manager
 
 #include <stdio.h>
 #include <unistd.h>
 #include <X11/Xlib.h>
 
 int main () {
-    Display   *display;
-    Window     win;
-    XEvent     report;
-    XEvent     msg;
-    int        x=10,y=10,h=100,w=100;
+    Display *display;
+    Window win;
+    XEvent report;
+    int x = 10, y = 10, h = 100, w = 100;
 
     display = XOpenDisplay(NULL);
-
     if (display == NULL) {
         fprintf(stderr, "couldn't connect to X server :0\n");
-        return 0;
+        return 1;  // Return failure if the display cannot be opened
     }
 
     win = XCreateWindow(display, RootWindow(display, 0),
                         x, y, w, h, 0, CopyFromParent, CopyFromParent,
                         CopyFromParent, 0, NULL);
 
-    XSetWindowBackground(display,win,WhitePixel(display,0));
+    XSetWindowBackground(display, win, WhitePixel(display, 0));
 
-    XSelectInput(display, win, (ExposureMask | StructureNotifyMask |
-                                GravityNotify));
+    XSelectInput(display, win, (ExposureMask | StructureNotifyMask | GravityNotify));
 
     XMapWindow(display, win);
     XFlush(display);
 
     sleep(1);
-    XResizeWindow(display, win, w+5, h+5);
+    XResizeWindow(display, win, w + 5, h + 5);
     XMoveWindow(display, win, x, y);
 
     while (1) {
@@ -78,12 +59,15 @@ int main () {
             int or = report.xconfigure.override_redirect;
             printf("confignotify send %d ev 0x%x win 0x%x %i,%i-%ix%i bw %i\n"
                    "             above 0x%x ovrd %d\n",
-                   se,event,window,x,y,w,h,bw,above,or);
+                   se, event, window, x, y, w, h, bw, above, or);
             break;
         }
         }
 
     }
 
-    return 1;
+    XDestroyWindow(display, win);  // Destroy the window
+    XCloseDisplay(display);        // Close the display connection
+
+    return 0;
 }

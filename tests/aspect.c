@@ -79,6 +79,8 @@ int main() {
         usleep(500000);  // Sleep for 0.5 seconds
     }
 
+    // Destroy the window and close the display connection
+    XDestroyWindow(display, win);
     XCloseDisplay(display);  // Ensure the display is closed properly
 
     return 0;
