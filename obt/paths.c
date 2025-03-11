@@ -142,6 +142,7 @@ ObtPaths* obt_paths_new(void)
 
     find_uid_gid(&p->uid, &p->gid, &p->n_gid);
 
+    // Initialize the environment variables
     path = g_getenv("XDG_CONFIG_HOME");
     if (path && path[0] != '\0') /* not unset or empty */
         p->config_home = g_build_filename(path, NULL);
@@ -152,8 +153,7 @@ ObtPaths* obt_paths_new(void)
     if (path && path[0] != '\0') /* not unset or empty */
         p->data_home = g_build_filename(path, NULL);
     else
-        p->data_home = g_build_filename(g_get_home_dir(), ".local",
-                                        "share", NULL);
+        p->data_home = g_build_filename(g_get_home_dir(), ".local", "share", NULL);
 
     path = g_getenv("XDG_CACHE_HOME");
     if (path && path[0] != '\0') /* not unset or empty */
@@ -169,15 +169,14 @@ ObtPaths* obt_paths_new(void)
                                         g_strdup(CONFIGDIR),
                                         (GSListFunc) g_slist_append);
         p->config_dirs = slist_path_add(p->config_dirs,
-                                        g_build_filename
-                                        (G_DIR_SEPARATOR_S,
-                                         "etc", "xdg", NULL),
+                                        g_build_filename(G_DIR_SEPARATOR_S, "etc", "xdg", NULL),
                                         (GSListFunc) g_slist_append);
     }
     p->config_dirs = slist_path_add(p->config_dirs,
                                     g_strdup(p->config_home),
                                     (GSListFunc) g_slist_prepend);
 
+    // Create autostart directories
     for (it = p->config_dirs; it; it = g_slist_next(it)) {
         gchar *const s = g_strdup_printf("%s/autostart", (gchar*)it->data);
         p->autostart_dirs = g_slist_append(p->autostart_dirs, s);
@@ -191,14 +190,10 @@ ObtPaths* obt_paths_new(void)
                                       g_strdup(DATADIR),
                                       (GSListFunc) g_slist_append);
         p->data_dirs = slist_path_add(p->data_dirs,
-                                      g_build_filename
-                                      (G_DIR_SEPARATOR_S,
-                                       "usr", "local", "share", NULL),
+                                      g_build_filename(G_DIR_SEPARATOR_S, "usr", "local", "share", NULL),
                                       (GSListFunc) g_slist_append);
         p->data_dirs = slist_path_add(p->data_dirs,
-                                      g_build_filename
-                                      (G_DIR_SEPARATOR_S,
-                                       "usr", "share", NULL),
+                                      g_build_filename(G_DIR_SEPARATOR_S, "usr", "share", NULL),
                                       (GSListFunc) g_slist_append);
     }
     p->data_dirs = slist_path_add(p->data_dirs,
