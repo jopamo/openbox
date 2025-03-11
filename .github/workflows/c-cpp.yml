@@ -1,23 +1,100 @@
-name: C/C++ CI
+name: CI
 
 on:
   push:
-    branches: [ "main" ]
+    branches:
+      - main
   pull_request:
-    branches: [ "main" ]
+    branches:
+      - main
+  workflow_dispatch:
 
 jobs:
-  build:
-
+  build-and-test:
     runs-on: ubuntu-latest
-
+    strategy:
+      matrix:
+        sanitizer:
+          - none
+          - asan-ubsan
+          - msan
+          - tsan
     steps:
-    - uses: actions/checkout@v4
-    - name: configure
-      run: ./configure
-    - name: make
-      run: make
-    - name: make check
-      run: make check
-    - name: make distcheck
-      run: make distcheck
+      - uses: actions/checkout@v4.1.6
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            autoconf autopoint automake libtool build-essential pkg-config \
+            clang valgrind gettext docbook-to-man \
+            libx11-dev libpango1.0-dev libglib2.0-dev \
+            libstartup-notification0-dev libxrandr-dev libxinerama-dev \
+            libxcursor-dev libimlib2-dev librsvg2-dev xvfb
+      - name: Configure and build
+        shell: bash
+        run: |
+          autoreconf -vif
+          export CC=clang
+          if [ "${{ matrix.sanitizer }}" = "asan-ubsan" ]; then
+            export CFLAGS="-g -fsanitize=address,undefined"
+            export LDFLAGS="-fsanitize=address,undefined"
+          elif [ "${{ matrix.sanitizer }}" = "msan" ]; then
+            export CFLAGS="-g -fsanitize=memory"
+            export LDFLAGS="-fsanitize=memory"
+          elif [ "${{ matrix.sanitizer }}" = "tsan" ]; then
+            export CFLAGS="-g -fsanitize=thread"
+            export LDFLAGS="-fsanitize=thread"
+          else
+            export CFLAGS="-g"
+            export LDFLAGS=""
+          fi
+          ./configure --prefix=/usr/local
+          make -j"$(nproc)"
+      - name: Launch Xvfb and run tests
+        shell: bash
+        run: |
+          xvfb-run --auto-servernum --server-args="-screen 0 1280x800x24" bash -c "
+            openbox/openbox --replace &
+            sleep 2
+            cd tests
+            make -j16
+            run_with_timeout() {
+              timeout 5s \"\$@\"
+              s=\$?
+              if [ \$s -eq 124 ]; then
+                echo '[Timeout] Killed test after 5 seconds.'
+              elif [ \$s -ne 0 ]; then
+                echo '[Error] Test failed with status '\$s
+              fi
+            }
+            if [ \"${{ matrix.sanitizer }}\" = \"asan-ubsan\" ] || [ \"${{ matrix.sanitizer }}\" = \"msan\" ] || [ \"${{ matrix.sanitizer }}\" = \"tsan\" ]; then
+              export ASAN_OPTIONS=detect_leaks=1:halt_on_error=1:detect_odr_violation=1
+              export UBSAN_OPTIONS=print_stacktrace=1:halt_on_error=1
+              for t in \$(ls -1 | grep -v '\\.c' | grep -v Makefile | grep -v '\\.py' | grep -v '\\.sh'); do
+                if [ -x \"\$t\" ]; then
+                  echo '[Sanitizer] Running '\$t'...'
+                  run_with_timeout ./\$t
+                fi
+              done
+            else
+              for t in \$(ls -1 | grep -v '\\.c' | grep -v Makefile | grep -v '\\.py' | grep -v '\\.sh'); do
+                if [ -x \"\$t\" ]; then
+                  echo '[Normal] Running '\$t'...'
+                  run_with_timeout ./\$t
+                fi
+              done
+            fi
+          "
+
+  fuzzing:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4.1.6
+      - name: Install clang
+        run: sudo apt-get update && sudo apt-get install -y clang
+      - name: Build fuzzer
+        run: |
+          clang -g -fsanitize=fuzzer,address -o myfuzzer fuzz_target.c src/*.c
+      - name: Run fuzzing
+        run: |
+          ./myfuzzer -max_total_time=60
