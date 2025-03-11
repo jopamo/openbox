@@ -135,36 +135,55 @@ ObtPaths* obt_paths_new(void)
 {
     ObtPaths *p;
     const gchar *path;
+    const gchar *home_dir;
     GSList *it;
 
+    // Allocate memory for ObtPaths, initialize with zero values
     p = g_slice_new0(ObtPaths);
     p->ref = 1;
 
+    // Initialize the UID, GID, and N_GID
     find_uid_gid(&p->uid, &p->gid, &p->n_gid);
 
-    // Initialize the environment variables
-    path = g_getenv("XDG_CONFIG_HOME");
-    if (path && path[0] != '\0') /* not unset or empty */
-        p->config_home = g_build_filename(path, NULL);
-    else
-        p->config_home = g_build_filename(g_get_home_dir(), ".config", NULL);
+    // Initialize home directory safely
+    home_dir = g_get_home_dir();
+    if (home_dir == NULL) {
+        g_warning("Failed to retrieve the home directory.");
+        p->config_home = NULL;
+        p->data_home = NULL;
+        p->cache_home = NULL;
+    } else {
+        // Initialize the config_home path
+        path = g_getenv("XDG_CONFIG_HOME");
+        if (path && path[0] != '\0') { // Check if not unset or empty
+            p->config_home = g_build_filename(path, NULL);
+        } else {
+            p->config_home = g_build_filename(home_dir, ".config", NULL);
+        }
 
-    path = g_getenv("XDG_DATA_HOME");
-    if (path && path[0] != '\0') /* not unset or empty */
-        p->data_home = g_build_filename(path, NULL);
-    else
-        p->data_home = g_build_filename(g_get_home_dir(), ".local", "share", NULL);
+        // Initialize the data_home path
+        path = g_getenv("XDG_DATA_HOME");
+        if (path && path[0] != '\0') { // Check if not unset or empty
+            p->data_home = g_build_filename(path, NULL);
+        } else {
+            p->data_home = g_build_filename(home_dir, ".local", "share", NULL);
+        }
 
-    path = g_getenv("XDG_CACHE_HOME");
-    if (path && path[0] != '\0') /* not unset or empty */
-        p->cache_home = g_build_filename(path, NULL);
-    else
-        p->cache_home = g_build_filename(g_get_home_dir(), ".cache", NULL);
+        // Initialize the cache_home path
+        path = g_getenv("XDG_CACHE_HOME");
+        if (path && path[0] != '\0') { // Check if not unset or empty
+            p->cache_home = g_build_filename(path, NULL);
+        } else {
+            p->cache_home = g_build_filename(home_dir, ".cache", NULL);
+        }
+    }
 
+    // Initialize the config_dirs list
     path = g_getenv("XDG_CONFIG_DIRS");
-    if (path && path[0] != '\0') /* not unset or empty */
+    if (path && path[0] != '\0') { // Check if not unset or empty
         p->config_dirs = split_paths(path);
-    else {
+    } else {
+        // Default paths to add to config_dirs
         p->config_dirs = slist_path_add(p->config_dirs,
                                         g_strdup(CONFIGDIR),
                                         (GSListFunc) g_slist_append);
@@ -172,9 +191,12 @@ ObtPaths* obt_paths_new(void)
                                         g_build_filename(G_DIR_SEPARATOR_S, "etc", "xdg", NULL),
                                         (GSListFunc) g_slist_append);
     }
-    p->config_dirs = slist_path_add(p->config_dirs,
-                                    g_strdup(p->config_home),
-                                    (GSListFunc) g_slist_prepend);
+    // Add the config_home directory to the start of the list
+    if (p->config_home) {
+        p->config_dirs = slist_path_add(p->config_dirs,
+                                        g_strdup(p->config_home),
+                                        (GSListFunc) g_slist_prepend);
+    }
 
     // Create autostart directories
     for (it = p->config_dirs; it; it = g_slist_next(it)) {
@@ -182,10 +204,12 @@ ObtPaths* obt_paths_new(void)
         p->autostart_dirs = g_slist_append(p->autostart_dirs, s);
     }
 
+    // Initialize the data_dirs list
     path = g_getenv("XDG_DATA_DIRS");
-    if (path && path[0] != '\0') /* not unset or empty */
+    if (path && path[0] != '\0') { // Check if not unset or empty
         p->data_dirs = split_paths(path);
-    else {
+    } else {
+        // Default paths to add to data_dirs
         p->data_dirs = slist_path_add(p->data_dirs,
                                       g_strdup(DATADIR),
                                       (GSListFunc) g_slist_append);
@@ -196,15 +220,20 @@ ObtPaths* obt_paths_new(void)
                                       g_build_filename(G_DIR_SEPARATOR_S, "usr", "share", NULL),
                                       (GSListFunc) g_slist_append);
     }
-    p->data_dirs = slist_path_add(p->data_dirs,
-                                  g_strdup(p->data_home),
-                                  (GSListFunc) g_slist_prepend);
+    // Add the data_home directory to the start of the list
+    if (p->data_home) {
+        p->data_dirs = slist_path_add(p->data_dirs,
+                                      g_strdup(p->data_home),
+                                      (GSListFunc) g_slist_prepend);
+    }
 
+    // Initialize the exec_dirs list
     path = g_getenv("PATH");
-    if (path && path[0] != '\0') /* not unset or empty */
+    if (path && path[0] != '\0') { // Check if not unset or empty
         p->exec_dirs = split_paths(path);
-    else
-        p->exec_dirs = NULL;
+    } else {
+        p->exec_dirs = NULL; // If PATH is empty or unset, set exec_dirs to NULL
+    }
 
     return p;
 }
