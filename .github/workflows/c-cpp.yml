@@ -58,10 +58,10 @@ jobs:
             cd tests
             make -j16
             run_with_timeout() {
-              timeout 30s \"\$@\"
+              timeout 10s \"\$@\"
               s=\$?
               if [ \$s -eq 124 ]; then
-                echo '[Timeout] Killed test after 30 seconds.'
+                echo '[Timeout] Killed test after 10 seconds.'
               elif [ \$s -ne 0 ]; then
                 echo '[Error] Test failed with status '\$s
                 exit 1
