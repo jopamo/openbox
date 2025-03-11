@@ -1,21 +1,11 @@
-CC = cc
-CFLAGS = -Wall -g -I/usr/include/glib-2.0 -I/usr/lib/glib-2.0/include
-LDFLAGS = -lX11 -lXext
-PKG_CONFIG = pkg-config
+files=$(wildcard *.c)
 
-SRC = $(wildcard *.c)
-OBJ = $(SRC:.c=.o)
-BIN = $(SRC:.c=)
+all: $(files:.c=)
 
-all: $(BIN)
-
-%.o: %.c
-	$(CC) $(CFLAGS) `$(PKG_CONFIG) --cflags glib-2.0` -c $< -o $@
-
-%: %.o
-	$(CC) $(CFLAGS) $^ `$(PKG_CONFIG) --libs glib-2.0` $(LDFLAGS) -o $@
+%: %.c
+	$(CC) `pkg-config --cflags --libs glib-2.0` $(CFLAGS) -o $@ $^ -lX11 -lXext
 
 clean:
-	rm -f $(OBJ) $(BIN)
+	rm -f $(files:.c=)
 
 .PHONY: all clean
