@@ -1,20 +1,4 @@
-/* -*- indent-tabs-mode: nil; tab-width: 4; c-basic-offset: 4; -*-
-
-   window.c for the Openbox window manager
-   Copyright (c) 2003-2007   Dana Jansens
-
-   This program is free software; you can redistribute it and/or modify
-   it under the terms of the GNU General Public License as published by
-   the Free Software Foundation; either version 2 of the License, or
-   (at your option) any later version.
-
-   This program is distributed in the hope that it will be useful,
-   but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-   GNU General Public License for more details.
-
-   See the COPYING file for a copy of the GNU General Public License.
-*/
+// window.c for the Openbox window manager
 
 #include "window.h"
 #include "menuframe.h"
@@ -51,6 +35,11 @@ void window_shutdown(gboolean reconfig)
 
 Window window_top(ObWindow *self)
 {
+    if (self == NULL) {
+        ob_debug("Attempted to access a NULL window in window_top");
+        return None;
+    }
+
     switch (self->type) {
     case OB_WINDOW_CLASS_MENUFRAME:
         return WINDOW_AS_MENUFRAME(self)->window;
@@ -62,26 +51,45 @@ Window window_top(ObWindow *self)
         return WINDOW_AS_INTERNAL(self)->window;
     case OB_WINDOW_CLASS_PROMPT:
         return WINDOW_AS_PROMPT(self)->super.window;
+    default:
+        ob_debug("Unknown window type: %d", self->type);
+        g_assert_not_reached();
+        return None;
     }
-    g_assert_not_reached();
-    return None;
 }
 
 ObStackingLayer window_layer(ObWindow *self)
 {
+    if (self == NULL) {
+        ob_debug("Attempted to access a NULL window in window_layer");
+        return None;
+    }
+
+    ob_debug("Accessing window %p in window_layer", self);
+
     switch (self->type) {
     case OB_WINDOW_CLASS_DOCK:
         return config_dock_layer;
+
     case OB_WINDOW_CLASS_CLIENT:
-        return ((ObClient*)self)->layer;
+        if (self) {
+            ObClient *client = (ObClient*)self;
+            ob_debug("Accessing client %p in window_layer", client);
+            return client->layer;
+        }
+        ob_debug("Client is NULL in window_layer");
+        return None;
+
     case OB_WINDOW_CLASS_MENUFRAME:
     case OB_WINDOW_CLASS_INTERNAL:
         return OB_STACKING_LAYER_INTERNAL;
+
     case OB_WINDOW_CLASS_PROMPT:
-        /* not used directly for stacking, prompts are managed as clients */
+        /* Prompts are managed as clients, not directly for stacking */
         g_assert_not_reached();
         break;
     }
+
     g_assert_not_reached();
     return None;
 }
@@ -95,12 +103,16 @@ void window_add(Window *xwin, ObWindow *win)
 {
     g_assert(xwin != NULL);
     g_assert(win != NULL);
+
+    /* Add to window map */
     g_hash_table_insert(window_map, xwin, win);
 }
 
 void window_remove(Window xwin)
 {
     g_assert(xwin != None);
+
+    /* Remove from window map */
     g_hash_table_remove(window_map, &xwin);
 }
 
@@ -117,7 +129,7 @@ void window_manage_all(void)
         nchild = 0;
     }
 
-    /* remove all icon windows from the list */
+    /* Remove all icon windows from the list */
     for (i = 0; i < nchild; i++) {
         if (children[i] == None) continue;
         wmhints = XGetWMHints(obt_display, children[i]);
@@ -126,7 +138,7 @@ void window_manage_all(void)
                 (wmhints->icon_window != children[i]))
                 for (j = 0; j < nchild; j++)
                     if (children[j] == wmhints->icon_window) {
-                        /* XXX watch the window though */
+                        /* XXX Watch the window */
                         children[j] = None;
                         break;
                     }
@@ -134,13 +146,12 @@ void window_manage_all(void)
         }
     }
 
+    /* Manage non-client windows */
     for (i = 0; i < nchild; ++i) {
         if (children[i] == None) continue;
-        if (window_find(children[i])) continue; /* skip our own windows */
+        if (window_find(children[i])) continue; /* Skip our own windows */
         if (XGetWindowAttributes(obt_display, children[i], &attrib)) {
-            if (attrib.map_state == IsUnmapped)
-                ;
-            else
+            if (attrib.map_state != IsUnmapped)
                 window_manage(children[i]);
         }
     }
@@ -164,38 +175,31 @@ void window_manage(Window win)
 
     grab_server(TRUE);
 
-    /* check if it has already been unmapped by the time we started
-       mapping. the grab does a sync so we don't have to here */
+    /* Check if the window is unmapped by the time we start mapping */
     if (xqueue_exists_local(check_unmap, &win)) {
         ob_debug("Trying to manage unmapped window. Aborting that.");
         no_manage = TRUE;
-    }
-    else if (!XGetWindowAttributes(obt_display, win, &attrib))
+    } else if (!XGetWindowAttributes(obt_display, win, &attrib)) {
         no_manage = TRUE;
-    else {
+    } else {
         XWMHints *wmhints;
 
-        /* is the window a docking app */
+        /* Check if the window is a docking app */
         is_dockapp = FALSE;
         if ((wmhints = XGetWMHints(obt_display, win))) {
             if ((wmhints->flags & StateHint) &&
-                wmhints->initial_state == WithdrawnState)
-            {
+                wmhints->initial_state == WithdrawnState) {
                 if (wmhints->flags & IconWindowHint)
                     icon_win = wmhints->icon_window;
                 is_dockapp = TRUE;
             }
             XFree(wmhints);
         }
-        /* This is a new method to declare that a window is a dockapp, being
-           implemented by Windowmaker, to alleviate pain in writing GTK+
-           dock apps.
-           http://thread.gmane.org/gmane.comp.window-managers.openbox/4881
-        */
+
+        /* Dock app check through WM_CLASS property */
         if (!is_dockapp) {
             gchar **ss;
-            if (OBT_PROP_GETSS_TYPE(win, WM_CLASS, STRING_NO_CC, &ss))
-            {
+            if (OBT_PROP_GETSS_TYPE(win, WM_CLASS, STRING_NO_CC, &ss)) {
                 if (ss[0] && ss[1] && strcmp(ss[1], "DockApp") == 0)
                     is_dockapp = TRUE;
                 g_strfreev(ss);
@@ -205,18 +209,16 @@ void window_manage(Window win)
 
     if (!no_manage) {
         if (attrib.override_redirect) {
-            ob_debug("not managing override redirect window 0x%x", win);
+            ob_debug("Not managing override redirect window 0x%x", win);
             grab_server(FALSE);
-        }
-        else if (is_dockapp) {
+        } else if (is_dockapp) {
             if (!icon_win)
                 icon_win = win;
             dock_manage(icon_win, win);
-        }
-        else
+        } else {
             client_manage(win, NULL);
-    }
-    else {
+        }
+    } else {
         grab_server(FALSE);
         ob_debug("FAILED to manage window 0x%x", win);
     }

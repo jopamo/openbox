@@ -666,6 +666,7 @@ static void event_process(const XEvent *ec, gpointer data)
 
             /* Free the pretend client */
             client_fake_unmanage(c);
+            c = NULL;
         }
     }
     else if (e->type == ConfigureRequest) {
