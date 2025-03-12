@@ -2566,9 +2566,14 @@ void client_calc_layer(ObClient* self) {
   GList* it;
 
   /* skip over stuff above fullscreen layer */
-  for (it = stacking_list; it; it = g_list_next(it))
+  for (it = stacking_list; it; it = g_list_next(it)) {
+    if (it->data == NULL) {
+      continue;  // Skip invalid or freed windows
+    }
+
     if (window_layer(it->data) <= OB_STACKING_LAYER_FULLSCREEN)
       break;
+  }
 
   /* find the windows in the fullscreen layer, and mark them not-visited */
   for (; it; it = g_list_next(it)) {
