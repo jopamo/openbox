@@ -1284,16 +1284,20 @@ static RrPixel32* read_c_image(gint width, gint height, const guint8* data) {
   RrPixel32 *im, *p;
   gint i;
 
-  p = im = g_memdup2(data, width * height * sizeof(RrPixel32));
+  /* Duplicate the pixel data from 'data' into our own buffer */
+  p = im = g_memdup2(data, (gsize)width * (gsize)height * sizeof(RrPixel32));
 
-  for (i = 0; i < width * height; ++i) {
-    guchar a = ((*p >> 24) & 0xff);
-    guchar b = ((*p >> 16) & 0xff);
-    guchar g = ((*p >> 8) & 0xff);
-    guchar r = ((*p >> 0) & 0xff);
+  for (i = 0; i < width * height; i++) {
+    /* Extract channels from the source pixel */
+    guchar a = (guchar)(((*p) >> 24) & 0xFF);
+    guchar b = (guchar)(((*p) >> 16) & 0xFF);
+    guchar g = (guchar)(((*p) >> 8) & 0xFF);
+    guchar r = (guchar)(((*p) >> 0) & 0xFF);
 
-    *p = ((r << RrDefaultRedOffset) + (g << RrDefaultGreenOffset) + (b << RrDefaultBlueOffset) +
-          (a << RrDefaultAlphaOffset));
+    /* Recombine into RrPixel32 using unsigned shifts */
+    *p = ((guint32)r << RrDefaultRedOffset) | ((guint32)g << RrDefaultGreenOffset) |
+         ((guint32)b << RrDefaultBlueOffset) | ((guint32)a << RrDefaultAlphaOffset);
+
     p++;
   }
 
