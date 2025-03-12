@@ -48,8 +48,9 @@ jobs:
             export LDFLAGS=""
           fi
 
-          ./configure --prefix=/usr/local
+          ./configure --prefix=/usr --disable-nls --enable-imlib2 --enable-librsvg --with-x --disable-debug --enable-session-management
           make -j"$(nproc)"
+          sudo make install
 
       - name: Launch Xvfb and run tests
         shell: bash
@@ -58,7 +59,7 @@ jobs:
             openbox --replace &
             sleep 2
             cd tests
-            make -j16
+            make -j"$(nproc)"
 
             run_with_timeout() {
               timeout 5s \"\$@\"
