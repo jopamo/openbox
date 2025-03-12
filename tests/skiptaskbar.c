@@ -5,13 +5,13 @@
 #include <X11/Xutil.h>
 #include <X11/Xatom.h>
 
-int main () {
-  Display   *display;
-  Window     win;
-  XEvent     report;
-  Atom       state, skip;
+int main() {
+  Display* display;
+  Window win;
+  XEvent report;
+  Atom state, skip;
   XClassHint classhint;
-  int        x = 10, y = 10, h = 400, w = 400;
+  int x = 10, y = 10, h = 400, w = 400;
 
   display = XOpenDisplay(NULL);
 
@@ -28,9 +28,8 @@ int main () {
     return 1;  // Return 1 if atom intern failed
   }
 
-  win = XCreateWindow(display, RootWindow(display, 0),
-                      x, y, w, h, 10, CopyFromParent, CopyFromParent,
-                      CopyFromParent, 0, NULL);
+  win = XCreateWindow(display, RootWindow(display, 0), x, y, w, h, 10, CopyFromParent, CopyFromParent, CopyFromParent,
+                      0, NULL);
 
   if (win == None) {
     fprintf(stderr, "Failed to create window\n");
@@ -40,8 +39,7 @@ int main () {
   XSetWindowBackground(display, win, WhitePixel(display, 0));
 
   // Set the _NET_WM_STATE_SKIP_TASKBAR property
-  XChangeProperty(display, win, state, XA_ATOM, 32,
-                  PropModeReplace, (unsigned char*)&skip, 1);
+  XChangeProperty(display, win, state, XA_ATOM, 32, PropModeReplace, (unsigned char*)&skip, 1);
 
   // Set window class hints
   classhint.res_name = "test";

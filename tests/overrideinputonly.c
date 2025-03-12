@@ -4,10 +4,10 @@
 #include <X11/Xlib.h>
 #include <string.h>
 
-int main (int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   XSetWindowAttributes xswa;
   unsigned long xswamask;
-  Display *display;
+  Display* display;
   Window win;
   XEvent report;
   int i, x = 0, y = 0, h = 1, w = 1;
@@ -31,8 +31,7 @@ int main (int argc, char *argv[]) {
   xswamask = CWOverrideRedirect;
 
   // Create an InputOnly window
-  win = XCreateWindow(display, RootWindow(display, 0), x, y, w, h, 0, 0, InputOnly,
-                      CopyFromParent, xswamask, &xswa);
+  win = XCreateWindow(display, RootWindow(display, 0), x, y, w, h, 0, 0, InputOnly, CopyFromParent, xswamask, &xswa);
 
   // Map the window (make it visible)
   XMapWindow(display, win);

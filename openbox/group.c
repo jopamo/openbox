@@ -19,48 +19,49 @@
 #include "group.h"
 #include "client.h"
 
-static GHashTable *group_map;
+static GHashTable* group_map;
 
-static guint window_hash(Window *w) { return *w; }
-static gboolean window_comp(Window *w1, Window *w2) { return *w1 == *w2; }
-
-void group_startup(gboolean reconfig)
-{
-    if (reconfig) return;
-
-    group_map = g_hash_table_new((GHashFunc)window_hash,
-                                 (GEqualFunc)window_comp);
+static guint window_hash(Window* w) {
+  return *w;
+}
+static gboolean window_comp(Window* w1, Window* w2) {
+  return *w1 == *w2;
 }
 
-void group_shutdown(gboolean reconfig)
-{
-    if (reconfig) return;
+void group_startup(gboolean reconfig) {
+  if (reconfig)
+    return;
 
-    g_hash_table_destroy(group_map);
+  group_map = g_hash_table_new((GHashFunc)window_hash, (GEqualFunc)window_comp);
 }
 
-ObGroup *group_add(Window leader, ObClient *client)
-{
-    ObGroup *self;
+void group_shutdown(gboolean reconfig) {
+  if (reconfig)
+    return;
 
-    self = g_hash_table_lookup(group_map, &leader);
-    if (self == NULL) {
-        self = g_slice_new(ObGroup);
-        self->leader = leader;
-        self->members = NULL;
-        g_hash_table_insert(group_map, &self->leader, self);
-    }
-
-    self->members = g_slist_append(self->members, client);
-
-    return self;
+  g_hash_table_destroy(group_map);
 }
 
-void group_remove(ObGroup *self, ObClient *client)
-{
-    self->members = g_slist_remove(self->members, client);
-    if (self->members == NULL) {
-        g_hash_table_remove(group_map, &self->leader);
-        g_slice_free(ObGroup, self);
-    }
+ObGroup* group_add(Window leader, ObClient* client) {
+  ObGroup* self;
+
+  self = g_hash_table_lookup(group_map, &leader);
+  if (self == NULL) {
+    self = g_slice_new(ObGroup);
+    self->leader = leader;
+    self->members = NULL;
+    g_hash_table_insert(group_map, &self->leader, self);
+  }
+
+  self->members = g_slist_append(self->members, client);
+
+  return self;
+}
+
+void group_remove(ObGroup* self, ObClient* client) {
+  self->members = g_slist_remove(self->members, client);
+  if (self->members == NULL) {
+    g_hash_table_remove(group_map, &self->leader);
+    g_slice_free(ObGroup, self);
+  }
 }

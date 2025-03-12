@@ -21,47 +21,45 @@
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
 
-int main () {
-    Display   *display;
-    Window     win;
-    XEvent     report;
-    XEvent     msg;
-    int        x=50,y=50,h=100,w=400;
+int main() {
+  Display* display;
+  Window win;
+  XEvent report;
+  XEvent msg;
+  int x = 50, y = 50, h = 100, w = 400;
 
-    display = XOpenDisplay(NULL);
+  display = XOpenDisplay(NULL);
 
-    if (display == NULL) {
-        fprintf(stderr, "couldn't connect to X server :0\n");
-        return 0;
-    }
+  if (display == NULL) {
+    fprintf(stderr, "couldn't connect to X server :0\n");
+    return 0;
+  }
 
-    win = XCreateWindow(display, RootWindow(display, DefaultScreen(display)),
-                        x, y, w, h, 10, CopyFromParent, CopyFromParent,
-                        CopyFromParent, 0, NULL);
-    XSetWindowBackground(display, win,
-                         WhitePixel(display, DefaultScreen(display)));
+  win = XCreateWindow(display, RootWindow(display, DefaultScreen(display)), x, y, w, h, 10, CopyFromParent,
+                      CopyFromParent, CopyFromParent, 0, NULL);
+  XSetWindowBackground(display, win, WhitePixel(display, DefaultScreen(display)));
 
-    usleep(1000000);
-    XMapWindow(display, win);
-    XFlush(display);
-    usleep(1000000);
+  usleep(1000000);
+  XMapWindow(display, win);
+  XFlush(display);
+  usleep(1000000);
 
-    msg.xclient.type = ClientMessage;
-    msg.xclient.message_type = XInternAtom(display, "WM_CHANGE_STATE", False);
-    msg.xclient.display = display;
-    msg.xclient.window = win;
-    msg.xclient.format = 32;
-    msg.xclient.data.l[0] = IconicState;
-    msg.xclient.data.l[1] = 0;
-    msg.xclient.data.l[2] = 0;
-    msg.xclient.data.l[3] = 0;
-    msg.xclient.data.l[4] = 0;
-    XSendEvent(display, RootWindow(display, DefaultScreen(display)),
-               False, SubstructureNotifyMask|SubstructureRedirectMask, &msg);
+  msg.xclient.type = ClientMessage;
+  msg.xclient.message_type = XInternAtom(display, "WM_CHANGE_STATE", False);
+  msg.xclient.display = display;
+  msg.xclient.window = win;
+  msg.xclient.format = 32;
+  msg.xclient.data.l[0] = IconicState;
+  msg.xclient.data.l[1] = 0;
+  msg.xclient.data.l[2] = 0;
+  msg.xclient.data.l[3] = 0;
+  msg.xclient.data.l[4] = 0;
+  XSendEvent(display, RootWindow(display, DefaultScreen(display)), False,
+             SubstructureNotifyMask | SubstructureRedirectMask, &msg);
 
-    while (1) {
-        XNextEvent(display, &report);
-    }
+  while (1) {
+    XNextEvent(display, &report);
+  }
 
-    return 1;
+  return 1;
 }

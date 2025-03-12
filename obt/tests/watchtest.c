@@ -28,23 +28,19 @@ exit
 #include "obt/watch.h"
 #include <glib.h>
 
-void func(ObtWatch *w, const gchar *base_path,
-          const gchar *subpath, ObtWatchNotifyType type,
-          gpointer data)
-{
-    g_print("base path: %s subpath: %s type=%d\n", base_path, subpath, type);
+void func(ObtWatch* w, const gchar* base_path, const gchar* subpath, ObtWatchNotifyType type, gpointer data) {
+  g_print("base path: %s subpath: %s type=%d\n", base_path, subpath, type);
 }
 
-gint main()
-{
-    ObtWatch *watch;
-    GMainLoop *loop;
+gint main() {
+  ObtWatch* watch;
+  GMainLoop* loop;
 
-    watch = obt_watch_new();
-    obt_watch_add(watch, "/tmp/a", FALSE, func, NULL);
+  watch = obt_watch_new();
+  obt_watch_add(watch, "/tmp/a", FALSE, func, NULL);
 
-    loop = g_main_loop_new(NULL, FALSE);
-    g_main_loop_run(loop);
+  loop = g_main_loop_new(NULL, FALSE);
+  g_main_loop_run(loop);
 
-    return 0;
+  return 0;
 }

@@ -21,13 +21,13 @@
 #include <X11/Xlib.h>
 #include <X11/Xatom.h>
 
-int main () {
-  Display   *display;
-  Window     win;
-  XEvent     report;
-  Atom       _restack;
-  XEvent     msg;
-  int        x=10,y=10,h=100,w=400;
+int main() {
+  Display* display;
+  Window win;
+  XEvent report;
+  Atom _restack;
+  XEvent msg;
+  int x = 10, y = 10, h = 100, w = 400;
 
   display = XOpenDisplay(NULL);
 
@@ -38,10 +38,9 @@ int main () {
 
   _restack = XInternAtom(display, "_NET_RESTACK_WINDOW", False);
 
-  win = XCreateWindow(display, RootWindow(display, 0),
-                      x, y, w, h, 10, CopyFromParent, CopyFromParent,
-                      CopyFromParent, 0, NULL);
-  XSetWindowBackground(display,win,WhitePixel(display,0));
+  win = XCreateWindow(display, RootWindow(display, 0), x, y, w, h, 10, CopyFromParent, CopyFromParent, CopyFromParent,
+                      0, NULL);
+  XSetWindowBackground(display, win, WhitePixel(display, 0));
 
   XMapWindow(display, win);
   XFlush(display);
@@ -59,8 +58,7 @@ int main () {
   msg.xclient.data.l[2] = Below;
   msg.xclient.data.l[3] = 0l;
   msg.xclient.data.l[4] = 0l;
-  XSendEvent(display, RootWindow(display, 0), False,
-             SubstructureNotifyMask | SubstructureRedirectMask, &msg);
+  XSendEvent(display, RootWindow(display, 0), False, SubstructureNotifyMask | SubstructureRedirectMask, &msg);
   XFlush(display);
 
   printf("requesting top in 3\n");
@@ -76,8 +74,7 @@ int main () {
   msg.xclient.data.l[2] = Above;
   msg.xclient.data.l[3] = 0l;
   msg.xclient.data.l[4] = 0l;
-  XSendEvent(display, RootWindow(display, 0), False,
-             SubstructureNotifyMask | SubstructureRedirectMask, &msg);
+  XSendEvent(display, RootWindow(display, 0), False, SubstructureNotifyMask | SubstructureRedirectMask, &msg);
   XFlush(display);
 
   printf("requesting bottomif in 3\n");
@@ -93,8 +90,7 @@ int main () {
   msg.xclient.data.l[2] = BottomIf;
   msg.xclient.data.l[3] = 0l;
   msg.xclient.data.l[4] = 0l;
-  XSendEvent(display, RootWindow(display, 0), False,
-             SubstructureNotifyMask | SubstructureRedirectMask, &msg);
+  XSendEvent(display, RootWindow(display, 0), False, SubstructureNotifyMask | SubstructureRedirectMask, &msg);
   XFlush(display);
 
   printf("requesting topif in 3\n");
@@ -110,8 +106,7 @@ int main () {
   msg.xclient.data.l[2] = TopIf;
   msg.xclient.data.l[3] = 0l;
   msg.xclient.data.l[4] = 0l;
-  XSendEvent(display, RootWindow(display, 0), False,
-             SubstructureNotifyMask | SubstructureRedirectMask, &msg);
+  XSendEvent(display, RootWindow(display, 0), False, SubstructureNotifyMask | SubstructureRedirectMask, &msg);
   XFlush(display);
 
   printf("requesting opposite in 3\n");
@@ -127,8 +122,7 @@ int main () {
   msg.xclient.data.l[2] = Opposite;
   msg.xclient.data.l[3] = 0l;
   msg.xclient.data.l[4] = 0l;
-  XSendEvent(display, RootWindow(display, 0), False,
-             SubstructureNotifyMask | SubstructureRedirectMask, &msg);
+  XSendEvent(display, RootWindow(display, 0), False, SubstructureNotifyMask | SubstructureRedirectMask, &msg);
   XFlush(display);
 
   while (1) {

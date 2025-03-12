@@ -30,19 +30,18 @@ exit
 #include <glib.h>
 #include <locale.h>
 
-gint main()
-{
-    ObtLinkBase *base;
-    ObtPaths *paths;
-    GMainLoop *loop;
+gint main() {
+  ObtLinkBase* base;
+  ObtPaths* paths;
+  GMainLoop* loop;
 
-    paths = obt_paths_new();
-    base = obt_linkbase_new(paths, setlocale(LC_MESSAGES, ""));
-    printf("done\n");
-    return 0;
+  paths = obt_paths_new();
+  base = obt_linkbase_new(paths, setlocale(LC_MESSAGES, ""));
+  printf("done\n");
+  return 0;
 
-    loop = g_main_loop_new(NULL, FALSE);
-    g_main_loop_run(loop);
+  loop = g_main_loop_new(NULL, FALSE);
+  g_main_loop_run(loop);
 
-    return 0;
+  return 0;
 }

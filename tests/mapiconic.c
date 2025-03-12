@@ -21,15 +21,15 @@
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
 
-int main () {
-  Display   *display;
-  Window     win;
-  XEvent     report;
-  Atom       wm_state;
-  XEvent     msg;
-  int        x=50,y=50,h=100,w=400;
+int main() {
+  Display* display;
+  Window win;
+  XEvent report;
+  Atom wm_state;
+  XEvent msg;
+  int x = 50, y = 50, h = 100, w = 400;
   unsigned long state[2];
-  XWMHints  *hints;
+  XWMHints* hints;
 
   display = XOpenDisplay(NULL);
 
@@ -43,9 +43,8 @@ int main () {
 
   wm_state = XInternAtom(display, "WM_STATE", False);
 
-  win = XCreateWindow(display, RootWindow(display, 0),
-		      x, y, w, h, 10, CopyFromParent, CopyFromParent,
-		      CopyFromParent, 0, NULL);
+  win = XCreateWindow(display, RootWindow(display, 0), x, y, w, h, 10, CopyFromParent, CopyFromParent, CopyFromParent,
+                      0, NULL);
 
   hints = XAllocWMHints();
   hints->flags = StateHint;
@@ -53,7 +52,7 @@ int main () {
   XSetWMHints(display, win, hints);
   XFree(hints);
 
-  XSetWindowBackground(display,win,WhitePixel(display,0));
+  XSetWindowBackground(display, win, WhitePixel(display, 0));
 
   XMapWindow(display, win);
   XFlush(display);
@@ -62,18 +61,17 @@ int main () {
     XNextEvent(display, &report);
 
     switch (report.type) {
-    case Expose:
-      printf("exposed\n");
-      break;
-    case ConfigureNotify:
-      x = report.xconfigure.x;
-      y = report.xconfigure.y;
-      w = report.xconfigure.width;
-      h = report.xconfigure.height;
-      printf("confignotify %i,%i-%ix%i\n",x,y,w,h);
-      break;
+      case Expose:
+        printf("exposed\n");
+        break;
+      case ConfigureNotify:
+        x = report.xconfigure.x;
+        y = report.xconfigure.y;
+        w = report.xconfigure.width;
+        h = report.xconfigure.height;
+        printf("confignotify %i,%i-%ix%i\n", x, y, w, h);
+        break;
     }
-
   }
 
   return 1;

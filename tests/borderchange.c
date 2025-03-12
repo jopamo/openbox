@@ -4,8 +4,8 @@
 #include <unistd.h>
 #include <X11/Xlib.h>
 
-int main () {
-  Display *display;
+int main() {
+  Display* display;
   Window win;
   XEvent report;
   int x = 10, y = 10, h = 200, w = 200;
@@ -16,7 +16,8 @@ int main () {
     return 0;
   }
 
-  win = XCreateWindow(display, RootWindow(display, 0), x, y, w, h, 10, CopyFromParent, CopyFromParent, CopyFromParent, 0, NULL);
+  win = XCreateWindow(display, RootWindow(display, 0), x, y, w, h, 10, CopyFromParent, CopyFromParent, CopyFromParent,
+                      0, NULL);
   XSetWindowBackground(display, win, WhitePixel(display, 0));
   XSelectInput(display, win, ExposureMask | StructureNotifyMask);
 
@@ -27,16 +28,16 @@ int main () {
   while (XPending(display)) {
     XNextEvent(display, &report);
     switch (report.type) {
-    case Expose:
-      printf("exposed\n");
-      break;
-    case ConfigureNotify:
-      x = report.xconfigure.x;
-      y = report.xconfigure.y;
-      w = report.xconfigure.width;
-      h = report.xconfigure.height;
-      printf("confignotify %i,%i-%ix%i\n", x, y, w, h);
-      break;
+      case Expose:
+        printf("exposed\n");
+        break;
+      case ConfigureNotify:
+        x = report.xconfigure.x;
+        y = report.xconfigure.y;
+        w = report.xconfigure.width;
+        h = report.xconfigure.height;
+        printf("confignotify %i,%i-%ix%i\n", x, y, w, h);
+        break;
     }
   }
 
@@ -51,16 +52,16 @@ int main () {
   while (XPending(display)) {
     XNextEvent(display, &report);
     switch (report.type) {
-    case Expose:
-      printf("exposed\n");
-      break;
-    case ConfigureNotify:
-      x = report.xconfigure.x;
-      y = report.xconfigure.y;
-      w = report.xconfigure.width;
-      h = report.xconfigure.height;
-      printf("confignotify %i,%i-%ix%i\n", x, y, w, h);
-      break;
+      case Expose:
+        printf("exposed\n");
+        break;
+      case ConfigureNotify:
+        x = report.xconfigure.x;
+        y = report.xconfigure.y;
+        w = report.xconfigure.width;
+        h = report.xconfigure.height;
+        printf("confignotify %i,%i-%ix%i\n", x, y, w, h);
+        break;
     }
   }
 
@@ -75,16 +76,16 @@ int main () {
   while (XPending(display)) {
     XNextEvent(display, &report);
     switch (report.type) {
-    case Expose:
-      printf("exposed\n");
-      break;
-    case ConfigureNotify:
-      x = report.xconfigure.x;
-      y = report.xconfigure.y;
-      w = report.xconfigure.width;
-      h = report.xconfigure.height;
-      printf("confignotify %i,%i-%ix%i\n", x, y, w, h);
-      break;
+      case Expose:
+        printf("exposed\n");
+        break;
+      case ConfigureNotify:
+        x = report.xconfigure.x;
+        y = report.xconfigure.y;
+        w = report.xconfigure.width;
+        h = report.xconfigure.height;
+        printf("confignotify %i,%i-%ix%i\n", x, y, w, h);
+        break;
     }
   }
 

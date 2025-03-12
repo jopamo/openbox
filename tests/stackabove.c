@@ -24,14 +24,14 @@
 #include <X11/Xlib.h>
 #include <X11/Xatom.h>
 
-int main () {
-  Display   *display;
-  Window     win, frame, a, p, *c;
+int main() {
+  Display* display;
+  Window win, frame, a, p, *c;
   unsigned int n;
   XWindowChanges changes;
-  XEvent     report;
-  XEvent     msg;
-  int        x=10,y=10,h=100,w=400;
+  XEvent report;
+  XEvent msg;
+  int x = 10, y = 10, h = 100, w = 400;
 
   display = XOpenDisplay(NULL);
 
@@ -40,10 +40,9 @@ int main () {
     return 0;
   }
 
-  win = XCreateWindow(display, RootWindow(display, 0),
-                      x, y, w, h, 10, CopyFromParent, CopyFromParent,
-                      CopyFromParent, 0, NULL);
-  XSetWindowBackground(display,win,WhitePixel(display,0));
+  win = XCreateWindow(display, RootWindow(display, 0), x, y, w, h, 10, CopyFromParent, CopyFromParent, CopyFromParent,
+                      0, NULL);
+  XSetWindowBackground(display, win, WhitePixel(display, 0));
 
   XMapWindow(display, win);
   XFlush(display);
@@ -53,11 +52,11 @@ int main () {
 
   frame = win;
   while (XQueryTree(display, frame, &a, &p, &c, &n) && p != a)
-      frame = p;
+    frame = p;
 
   changes.sibling = GO_ABOVE;
   while (XQueryTree(display, changes.sibling, &a, &p, &c, &n) && p != a)
-      changes.sibling = p;
+    changes.sibling = p;
 
   changes.stack_mode = Above;
   XConfigureWindow(display, frame, CWSibling | CWStackMode, &changes);

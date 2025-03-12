@@ -29,30 +29,29 @@ exit
 #include <stdio.h>
 
 int main() {
-    int ar[] = {
-        2, 4, 5, 7, 12, 34, 45, 56, 57, 67, 67, 68, 68, 69, 70, 71, 89, 100 };
-    int n = sizeof(ar)/sizeof(ar[0]);
-    BSEARCH_SETUP(int);
-    BSEARCH(int, ar, 0, n, 1);
-    g_assert(!!BSEARCH_FOUND() == FALSE);
-    BSEARCH(int, ar, 0, n, 0);
-    g_assert(!!BSEARCH_FOUND() == FALSE);
-    BSEARCH(int, ar, 0, n, 2);
-    g_assert(!!BSEARCH_FOUND() == TRUE);
-    g_assert(BSEARCH_AT() == 0);
-    BSEARCH(int, ar, 0, n, 58);
-    g_assert(!!BSEARCH_FOUND() == FALSE);
-    BSEARCH(int, ar, 0, n, 57);
-    g_assert(!!BSEARCH_FOUND() == TRUE);
-    g_assert(BSEARCH_AT() == 8);
-    BSEARCH(int, ar, 0, n, 55);
-    g_assert(!!BSEARCH_FOUND() == FALSE);
-    BSEARCH(int, ar, 0, n, 99);
-    g_assert(!!BSEARCH_FOUND() == FALSE);
-    BSEARCH(int, ar, 0, n, 100);
-    g_assert(!!BSEARCH_FOUND() == TRUE);
-    g_assert(BSEARCH_AT() == 17);
-    BSEARCH(int, ar, 0, n, 101);
-    g_assert(!!BSEARCH_FOUND() == FALSE);
-    g_print("ok\n");
+  int ar[] = {2, 4, 5, 7, 12, 34, 45, 56, 57, 67, 67, 68, 68, 69, 70, 71, 89, 100};
+  int n = sizeof(ar) / sizeof(ar[0]);
+  BSEARCH_SETUP(int);
+  BSEARCH(int, ar, 0, n, 1);
+  g_assert(!!BSEARCH_FOUND() == FALSE);
+  BSEARCH(int, ar, 0, n, 0);
+  g_assert(!!BSEARCH_FOUND() == FALSE);
+  BSEARCH(int, ar, 0, n, 2);
+  g_assert(!!BSEARCH_FOUND() == TRUE);
+  g_assert(BSEARCH_AT() == 0);
+  BSEARCH(int, ar, 0, n, 58);
+  g_assert(!!BSEARCH_FOUND() == FALSE);
+  BSEARCH(int, ar, 0, n, 57);
+  g_assert(!!BSEARCH_FOUND() == TRUE);
+  g_assert(BSEARCH_AT() == 8);
+  BSEARCH(int, ar, 0, n, 55);
+  g_assert(!!BSEARCH_FOUND() == FALSE);
+  BSEARCH(int, ar, 0, n, 99);
+  g_assert(!!BSEARCH_FOUND() == FALSE);
+  BSEARCH(int, ar, 0, n, 100);
+  g_assert(!!BSEARCH_FOUND() == TRUE);
+  g_assert(BSEARCH_AT() == 17);
+  BSEARCH(int, ar, 0, n, 101);
+  g_assert(!!BSEARCH_FOUND() == FALSE);
+  g_print("ok\n");
 }

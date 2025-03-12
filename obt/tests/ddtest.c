@@ -32,30 +32,28 @@ exit
 #include "obt/link.h"
 #include <glib.h>
 
-gint main(int argc, char **argv)
-{
-    ObtPaths *obtpaths;
-    ObtLink *dd;
-    gchar *id;
+gint main(int argc, char** argv) {
+  ObtPaths* obtpaths;
+  ObtLink* dd;
+  gchar* id;
 
-    if (argc < 2) {
-        g_print("pass path to .desktop\n");
-        return 1;
-    }
+  if (argc < 2) {
+    g_print("pass path to .desktop\n");
+    return 1;
+  }
 
-    obtpaths = obt_paths_new();
-    dd = obt_link_from_ddfile(argv[1], obtpaths, "et", NULL, NULL);
-    obt_paths_unref(obtpaths);
-    if (dd) {
-        g_print("Success\n");
-        {
-            gulong i, n;
-            const GQuark *c = obt_link_app_categories(dd, &n);
-            for (i = 0; i < n; ++i)
-                g_print("Category: %s\n",
-                        g_quark_to_string(c[i]));
-        }
-        obt_link_unref(dd);
+  obtpaths = obt_paths_new();
+  dd = obt_link_from_ddfile(argv[1], obtpaths, "et", NULL, NULL);
+  obt_paths_unref(obtpaths);
+  if (dd) {
+    g_print("Success\n");
+    {
+      gulong i, n;
+      const GQuark* c = obt_link_app_categories(dd, &n);
+      for (i = 0; i < n; ++i)
+        g_print("Category: %s\n", g_quark_to_string(c[i]));
     }
-    return 0;
+    obt_link_unref(dd);
+  }
+  return 0;
 }

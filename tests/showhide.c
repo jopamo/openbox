@@ -9,11 +9,11 @@
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
 
-int main () {
-  Display   *display;
-  Window     win;
-  XEvent     report;
-  int        x = 50, y = 50, h = 100, w = 400;
+int main() {
+  Display* display;
+  Window win;
+  XEvent report;
+  int x = 50, y = 50, h = 100, w = 400;
 
   // Open connection to X server
   display = XOpenDisplay(NULL);
@@ -24,9 +24,8 @@ int main () {
   }
 
   // Create the window
-  win = XCreateWindow(display, RootWindow(display, 0),
-                      x, y, w, h, 10, CopyFromParent, CopyFromParent,
-                      CopyFromParent, 0, NULL);
+  win = XCreateWindow(display, RootWindow(display, 0), x, y, w, h, 10, CopyFromParent, CopyFromParent, CopyFromParent,
+                      0, NULL);
 
   if (win == 0) {
     fprintf(stderr, "Failed to create window\n");
@@ -35,7 +34,7 @@ int main () {
 
   XSetWindowBackground(display, win, WhitePixel(display, 0));
   XMapWindow(display, win);  // Make the window visible
-  XFlush(display);  // Ensure the window gets displayed
+  XFlush(display);           // Ensure the window gets displayed
 
   // Sleep to keep the window visible for 2 seconds
   sleep(2);

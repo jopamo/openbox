@@ -1,11 +1,25 @@
-BasedOnStyle: Google
-IndentWidth: 2
-ContinuationIndentWidth: 2
-UseTab: Never
+---
+BasedOnStyle: Chromium
+BraceWrapping:
+  AfterCaseLabel: false
+  AfterClass: false
+  AfterControlStatement: Never
+  AfterEnum: false
+  AfterFunction: false
+  AfterNamespace: false
+  AfterObjCDeclaration: false
+  AfterStruct: false
+  AfterUnion: false
+  AfterExternBlock: false
+  BeforeCatch: false
+  BeforeElse: true
+  BeforeLambdaBody: false
+  BeforeWhile: false
+  IndentBraces: false
+  SplitEmptyFunction: true
+  SplitEmptyRecord: true
+  SplitEmptyNamespace: true
+BreakBeforeBraces: Custom
 ColumnLimit: 120
-
-SpacesInParentheses: true
-SpaceBeforeParens: ControlStatements
-
-AlignAfterOpenBracket: true
-AlignConsecutiveAssignments: true
+IncludeBlocks: Preserve
+SortIncludes: Never

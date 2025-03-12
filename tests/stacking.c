@@ -21,12 +21,12 @@
 #include <X11/Xutil.h>
 #include <X11/Xatom.h>
 
-int main () {
-  Display   *display;
-  Window     parent, child1, child2, group;
-  XEvent     report;
-  int        x=10,y=10,h=400,w=400;
-  XWMHints  *hints;
+int main() {
+  Display* display;
+  Window parent, child1, child2, group;
+  XEvent report;
+  int x = 10, y = 10, h = 400, w = 400;
+  XWMHints* hints;
 
   display = XOpenDisplay(NULL);
 
@@ -35,22 +35,18 @@ int main () {
     return 0;
   }
 
-  group = XCreateWindow(display, RootWindow(display, 0),
-                        x, y, w, h, 10, CopyFromParent, CopyFromParent,
-                        CopyFromParent, 0, 0);
-  parent = XCreateWindow(display, RootWindow(display, 0),
-			 x, y, w, h, 10, CopyFromParent, CopyFromParent,
-			 CopyFromParent, 0, 0);
-  child1 = XCreateWindow(display, RootWindow(display, 0),
-                         x, y, w/2, h/2, 10, CopyFromParent, CopyFromParent,
+  group = XCreateWindow(display, RootWindow(display, 0), x, y, w, h, 10, CopyFromParent, CopyFromParent, CopyFromParent,
+                        0, 0);
+  parent = XCreateWindow(display, RootWindow(display, 0), x, y, w, h, 10, CopyFromParent, CopyFromParent,
                          CopyFromParent, 0, 0);
-  child2 = XCreateWindow(display, RootWindow(display, 0),
-                         x, y, w/2, h/2, 10, CopyFromParent, CopyFromParent,
+  child1 = XCreateWindow(display, RootWindow(display, 0), x, y, w / 2, h / 2, 10, CopyFromParent, CopyFromParent,
+                         CopyFromParent, 0, 0);
+  child2 = XCreateWindow(display, RootWindow(display, 0), x, y, w / 2, h / 2, 10, CopyFromParent, CopyFromParent,
                          CopyFromParent, 0, 0);
 
-  XSetWindowBackground(display,parent,WhitePixel(display,0));
-  XSetWindowBackground(display,child1,BlackPixel(display,0));
-  XSetWindowBackground(display,child2,WhitePixel(display,0));
+  XSetWindowBackground(display, parent, WhitePixel(display, 0));
+  XSetWindowBackground(display, child1, BlackPixel(display, 0));
+  XSetWindowBackground(display, child2, WhitePixel(display, 0));
 
   hints = XAllocWMHints();
   hints->flags = WindowGroupHint;
@@ -60,8 +56,7 @@ int main () {
   XSetWMHints(display, child2, hints);
   XFree(hints);
 
-  XSetTransientForHint(display, child1,
-                       RootWindow(display, DefaultScreen(display)));
+  XSetTransientForHint(display, child1, RootWindow(display, DefaultScreen(display)));
   XSetTransientForHint(display, child2, parent);
 
   XMapWindow(display, parent);

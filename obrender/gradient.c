@@ -7,19 +7,19 @@
 #include "gradient.h"
 #include "render.h"
 
-static void highlight(RrSurface *s, RrPixel32 *x, RrPixel32 *y, gboolean raised);
-static void gradient_parentrelative(RrAppearance *a, gint w, gint h);
-static void gradient_solid(RrAppearance *l, gint w, gint h);
-static void gradient_splitvertical(RrAppearance *a, gint w, gint h);
-static void gradient_vertical(RrSurface *sf, gint w, gint h);
-static void gradient_horizontal(RrSurface *sf, gint w, gint h);
-static void gradient_mirrorhorizontal(RrSurface *sf, gint w, gint h);
-static void gradient_diagonal(RrSurface *sf, gint w, gint h);
-static void gradient_crossdiagonal(RrSurface *sf, gint w, gint h);
-static void gradient_pyramid(RrSurface *sf, gint inw, gint inh);
+static void highlight(RrSurface* s, RrPixel32* x, RrPixel32* y, gboolean raised);
+static void gradient_parentrelative(RrAppearance* a, gint w, gint h);
+static void gradient_solid(RrAppearance* l, gint w, gint h);
+static void gradient_splitvertical(RrAppearance* a, gint w, gint h);
+static void gradient_vertical(RrSurface* sf, gint w, gint h);
+static void gradient_horizontal(RrSurface* sf, gint w, gint h);
+static void gradient_mirrorhorizontal(RrSurface* sf, gint w, gint h);
+static void gradient_diagonal(RrSurface* sf, gint w, gint h);
+static void gradient_crossdiagonal(RrSurface* sf, gint w, gint h);
+static void gradient_pyramid(RrSurface* sf, gint inw, gint inh);
 
-void RrRender(RrAppearance *a, gint w, gint h) {
-  RrPixel32 *data = a->surface.pixel_data;
+void RrRender(RrAppearance* a, gint w, gint h) {
+  RrPixel32* data = a->surface.pixel_data;
   RrPixel32 current;
   guint r, g, b;
   register gint off, x;
@@ -59,7 +59,7 @@ void RrRender(RrAppearance *a, gint w, gint h) {
 
   if (a->surface.interlaced) {
     gint i;
-    RrPixel32 *p;
+    RrPixel32* p;
 
     r = a->surface.interlace_color->r;
     g = a->surface.interlace_color->g;
@@ -67,7 +67,8 @@ void RrRender(RrAppearance *a, gint w, gint h) {
     current = (r << RrDefaultRedOffset) + (g << RrDefaultGreenOffset) + (b << RrDefaultBlueOffset);
     p = data;
     for (i = 0; i < h; i += 2, p += w)
-      for (x = 0; x < w; ++x, ++p) *p = current;
+      for (x = 0; x < w; ++x, ++p)
+        *p = current;
   }
 
   if (a->surface.relief == RR_RELIEF_FLAT && a->surface.border) {
@@ -102,7 +103,7 @@ void RrRender(RrAppearance *a, gint w, gint h) {
   }
 }
 
-static void highlight(RrSurface *s, RrPixel32 *x, RrPixel32 *y, gboolean raised) {
+static void highlight(RrSurface* s, RrPixel32* x, RrPixel32* y, gboolean raised) {
   register gint r, g, b;
   RrPixel32 *up, *down;
 
@@ -129,7 +130,7 @@ static void highlight(RrSurface *s, RrPixel32 *x, RrPixel32 *y, gboolean raised)
   *down = (r << RrDefaultRedOffset) + (g << RrDefaultGreenOffset) + (b << RrDefaultBlueOffset);
 }
 
-static void create_bevel_colors(RrAppearance *l) {
+static void create_bevel_colors(RrAppearance* l) {
   register gint r, g, b;
 
   r = l->surface.primary->r;
@@ -154,30 +155,34 @@ static void create_bevel_colors(RrAppearance *l) {
   l->surface.bevel_dark = RrColorNew(l->inst, r, g, b);
 }
 
-static inline void repeat_pixel(RrPixel32 *start, gint w) {
+static inline void repeat_pixel(RrPixel32* start, gint w) {
   register gint x;
-  RrPixel32 *dest = start + 1;
+  RrPixel32* dest = start + 1;
 
   if (w < 8) {
-    for (x = w - 1; x > 0; --x) *(dest++) = *start;
-  } else {
-    gchar *cdest;
+    for (x = w - 1; x > 0; --x)
+      *(dest++) = *start;
+  }
+  else {
+    gchar* cdest;
     gint lenbytes = 4 * sizeof(RrPixel32);
 
-    for (x = 3; x > 0; --x) *(dest++) = *start;
+    for (x = 3; x > 0; --x)
+      *(dest++) = *start;
 
-    cdest = (gchar *)dest;
+    cdest = (gchar*)dest;
     for (x = (w - 4) * sizeof(RrPixel32); x > 0;) {
       memcpy(cdest, start, lenbytes);
       x -= lenbytes;
       cdest += lenbytes;
       lenbytes <<= 1;
-      if (lenbytes > x) lenbytes = x;
+      if (lenbytes > x)
+        lenbytes = x;
     }
   }
 }
 
-static void gradient_parentrelative(RrAppearance *a, gint w, gint h) {
+static void gradient_parentrelative(RrAppearance* a, gint w, gint h) {
   RrPixel32 *source, *dest;
   gint sw, sh, partial_w, partial_h;
   register gint i;
@@ -201,7 +206,8 @@ static void gradient_parentrelative(RrAppearance *a, gint w, gint h) {
 
     RrRender(a, w, h);
     a->surface = old;
-  } else {
+  }
+  else {
     source = (a->surface.parent->surface.pixel_data + a->surface.parentx + sw * a->surface.parenty);
     dest = a->surface.pixel_data;
 
@@ -214,25 +220,28 @@ static void gradient_parentrelative(RrAppearance *a, gint w, gint h) {
   }
 }
 
-static void gradient_solid(RrAppearance *l, gint w, gint h) {
+static void gradient_solid(RrAppearance* l, gint w, gint h) {
   register gint i;
   RrPixel32 pix;
-  RrPixel32 *data = l->surface.pixel_data;
-  RrSurface *sp = &l->surface;
+  RrPixel32* data = l->surface.pixel_data;
+  RrSurface* sp = &l->surface;
   gint left = 0, top = 0, right = w - 1, bottom = h - 1;
 
   pix = (sp->primary->r << RrDefaultRedOffset) + (sp->primary->g << RrDefaultGreenOffset) +
         (sp->primary->b << RrDefaultBlueOffset);
 
-  for (i = 0; i < w * h; i++) *data++ = pix;
+  for (i = 0; i < w * h; i++)
+    *data++ = pix;
 
-  if (sp->interlaced) return;
+  if (sp->interlaced)
+    return;
 
   XFillRectangle(RrDisplay(l->inst), l->pixmap, RrColorGC(sp->primary), 0, 0, w, h);
 
   switch (sp->relief) {
     case RR_RELIEF_RAISED:
-      if (!sp->bevel_dark) create_bevel_colors(l);
+      if (!sp->bevel_dark)
+        create_bevel_colors(l);
 
       switch (sp->bevel) {
         case RR_BEVEL_1:
@@ -256,7 +265,8 @@ static void gradient_solid(RrAppearance *l, gint w, gint h) {
       }
       break;
     case RR_RELIEF_SUNKEN:
-      if (!sp->bevel_dark) create_bevel_colors(l);
+      if (!sp->bevel_dark)
+        create_bevel_colors(l);
 
       switch (sp->bevel) {
         case RR_BEVEL_1:
@@ -322,7 +332,8 @@ static void gradient_solid(RrAppearance *l, gint w, gint h) {
 #define NEXT(x)                                   \
   {                                               \
     for (int i = 0; i < 3; ++i) {                 \
-      if (cdelta##x[i] == 0) continue;            \
+      if (cdelta##x[i] == 0)                      \
+        continue;                                 \
       if (bigslope##x[i]) {                       \
         while (1) {                               \
           color##x[i] += INCREMENT(x, i);         \
@@ -332,7 +343,8 @@ static void gradient_solid(RrAppearance *l, gint w, gint h) {
             break;                                \
           }                                       \
         }                                         \
-      } else {                                    \
+      }                                           \
+      else {                                      \
         error##x[i] += cdelta##x[i];              \
         if (error##x[i] << 1 >= len##x) {         \
           color##x[i] += INCREMENT(x, i);         \
@@ -342,9 +354,9 @@ static void gradient_solid(RrAppearance *l, gint w, gint h) {
     }                                             \
   }
 
-static void gradient_splitvertical(RrAppearance *a, gint w, gint h) {
-  RrSurface *sf = &a->surface;
-  RrPixel32 *data;
+static void gradient_splitvertical(RrAppearance* a, gint w, gint h) {
+  RrSurface* sf = &a->surface;
+  RrPixel32* data;
   gint y1sz, y2sz, y3sz;
 
   VARS(y1);
@@ -355,7 +367,8 @@ static void gradient_splitvertical(RrAppearance *a, gint w, gint h) {
     y1sz = MAX(h / 2, 0);
     y2sz = (h < 3) ? 0 : (h & 1);
     y3sz = MAX(h / 2, 1);
-  } else {
+  }
+  else {
     y1sz = h / 2 - (1 - (h & 1));
     y2sz = 1;
     y3sz = h / 2;
@@ -403,9 +416,9 @@ static void gradient_splitvertical(RrAppearance *a, gint w, gint h) {
   }
 }
 
-static void gradient_horizontal(RrSurface *sf, gint w, gint h) {
+static void gradient_horizontal(RrSurface* sf, gint w, gint h) {
   RrPixel32 *data = sf->pixel_data, *datav;
-  gchar *datac;
+  gchar* datac;
   gint cpbytes;
 
   VARS(x);
@@ -420,20 +433,21 @@ static void gradient_horizontal(RrSurface *sf, gint w, gint h) {
   *datav = COLOR(x);
   ++datav;
 
-  datac = (gchar *)datav;
+  datac = (gchar*)datav;
   cpbytes = 1 * w * sizeof(RrPixel32);
   for (int y = (h - 1) * w * sizeof(RrPixel32); y > 0;) {
     memcpy(datac, data, cpbytes);
     y -= cpbytes;
     datac += cpbytes;
     cpbytes <<= 1;
-    if (cpbytes > y) cpbytes = y;
+    if (cpbytes > y)
+      cpbytes = y;
   }
 }
 
-static void gradient_mirrorhorizontal(RrSurface *sf, gint w, gint h) {
+static void gradient_mirrorhorizontal(RrSurface* sf, gint w, gint h) {
   RrPixel32 *data = sf->pixel_data, *datav;
-  gchar *datac;
+  gchar* datac;
   gint half1 = (w + 1) / 2, half2 = w / 2, cpbytes;
 
   VARS(x);
@@ -459,19 +473,20 @@ static void gradient_mirrorhorizontal(RrSurface *sf, gint w, gint h) {
     ++datav;
   }
 
-  datac = (gchar *)datav;
+  datac = (gchar*)datav;
   cpbytes = 1 * w * sizeof(RrPixel32);
   for (int y = (h - 1) * w * sizeof(RrPixel32); y > 0;) {
     memcpy(datac, data, cpbytes);
     y -= cpbytes;
     datac += cpbytes;
     cpbytes <<= 1;
-    if (cpbytes > y) cpbytes = y;
+    if (cpbytes > y)
+      cpbytes = y;
   }
 }
 
-static void gradient_vertical(RrSurface *sf, gint w, gint h) {
-  RrPixel32 *data;
+static void gradient_vertical(RrSurface* sf, gint w, gint h) {
+  RrPixel32* data;
   VARS(y);
   SETUP(y, sf->primary, sf->secondary, h);
 
@@ -491,8 +506,8 @@ static void gradient_vertical(RrSurface *sf, gint w, gint h) {
   }
 }
 
-static void gradient_diagonal(RrSurface *sf, gint w, gint h) {
-  RrPixel32 *data = sf->pixel_data;
+static void gradient_diagonal(RrSurface* sf, gint w, gint h) {
+  RrPixel32* data = sf->pixel_data;
   RrColor left, right;
   RrColor extracorner;
 
@@ -532,8 +547,8 @@ static void gradient_diagonal(RrSurface *sf, gint w, gint h) {
   *data = COLOR(x);
 }
 
-static void gradient_crossdiagonal(RrSurface *sf, gint w, gint h) {
-  RrPixel32 *data = sf->pixel_data;
+static void gradient_crossdiagonal(RrSurface* sf, gint w, gint h) {
+  RrPixel32* data = sf->pixel_data;
   RrColor left, right;
   RrColor extracorner;
 
@@ -573,9 +588,9 @@ static void gradient_crossdiagonal(RrSurface *sf, gint w, gint h) {
   *data = COLOR(x);
 }
 
-static void gradient_pyramid(RrSurface *sf, gint w, gint h) {
+static void gradient_pyramid(RrSurface* sf, gint w, gint h) {
   RrPixel32 *ldata, *rdata;
-  RrPixel32 *cp;
+  RrPixel32* cp;
   RrColor left, right;
   RrColor extracorner;
   register gint x, y, halfw, halfh, midx, midy;

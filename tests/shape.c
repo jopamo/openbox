@@ -22,14 +22,13 @@
 #include <X11/Xutil.h>
 #include <X11/extensions/shape.h>
 
-int main () {
-
-  Display   *display;
-  Window     win;
-  XEvent     report;
-  XEvent     msg;
-  int        x=50,y=50,h=100,w=400;
-  XWMHints   hint;
+int main() {
+  Display* display;
+  Window win;
+  XEvent report;
+  XEvent msg;
+  int x = 50, y = 50, h = 100, w = 400;
+  XWMHints hint;
   XRectangle xrect;
 
   display = XOpenDisplay(NULL);
@@ -39,18 +38,15 @@ int main () {
     return 0;
   }
 
-  win = XCreateWindow(display, RootWindow(display, 0),
-		      x, y, w, h, 10, CopyFromParent, CopyFromParent,
-		      CopyFromParent, 0, NULL);
+  win = XCreateWindow(display, RootWindow(display, 0), x, y, w, h, 10, CopyFromParent, CopyFromParent, CopyFromParent,
+                      0, NULL);
   xrect.x = 10;
   xrect.y = 10;
   xrect.width = w - 20;
   xrect.height = h - 20;
-  XShapeCombineRectangles(display, win,
-                          ShapeBounding, 0, 0, &xrect, 1,
-                          ShapeSet, Unsorted);
+  XShapeCombineRectangles(display, win, ShapeBounding, 0, 0, &xrect, 1, ShapeSet, Unsorted);
 
-  XSetWindowBackground(display,win,BlackPixel(display,0));
+  XSetWindowBackground(display, win, BlackPixel(display, 0));
 
   XMapWindow(display, win);
   XFlush(display);
@@ -59,18 +55,17 @@ int main () {
     XNextEvent(display, &report);
 
     switch (report.type) {
-    case Expose:
-      printf("exposed\n");
-      break;
-    case ConfigureNotify:
-      x = report.xconfigure.x;
-      y = report.xconfigure.y;
-      w = report.xconfigure.width;
-      h = report.xconfigure.height;
-      printf("confignotify %i,%i-%ix%i\n",x,y,w,h);
-      break;
+      case Expose:
+        printf("exposed\n");
+        break;
+      case ConfigureNotify:
+        x = report.xconfigure.x;
+        y = report.xconfigure.y;
+        w = report.xconfigure.width;
+        h = report.xconfigure.height;
+        printf("confignotify %i,%i-%ix%i\n", x, y, w, h);
+        break;
     }
-
   }
 
   return 1;
