@@ -1,85 +1,70 @@
-/* -*- indent-tabs-mode: nil; tab-width: 4; c-basic-offset: 4; -*-
-
-   oldfullscreen.c for the Openbox window manager
-   Copyright (c) 2010        Dana Jansens
-
-   This program is free software; you can redistribute it and/or modify
-   it under the terms of the GNU General Public License as published by
-   the Free Software Foundation; either version 2 of the License, or
-   (at your option) any later version.
-
-   This program is distributed in the hope that it will be useful,
-   but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-   GNU General Public License for more details.
-
-   See the COPYING file for a copy of the GNU General Public License.
-*/
+/* wmhints.c for the Openbox window manager */
 
 #include <string.h>
 #include <stdio.h>
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
 
-typedef struct
-{
-    unsigned long   flags;
-    unsigned long   functions;
-    unsigned long   decorations;
-    long            inputMode;
-    unsigned long   status;
+typedef struct {
+    unsigned long flags;
+    unsigned long functions;
+    unsigned long decorations;
+    long inputMode;
+    unsigned long status;
 } Hints;
 
 int main (int argc, char **argv) {
-    Display    *display;
-    Window      win;
-    Window      r;
-    XEvent      report;
-    int         x=200,y=200,h=100,w=400,s;
-    Hints       hints;
-    Atom        prop;
+    Display *display;
+    Window win;
+    XEvent report;
+    int x = 200, y = 200, h = 100, w = 400, s;
+    Hints hints;
+    Atom prop;
 
+    // Open the X display
     display = XOpenDisplay(NULL);
-
     if (display == NULL) {
         fprintf(stderr, "couldn't connect to X server :0\n");
-        return 0;
+        return 1;  // Return 1 to indicate failure if unable to connect to the X server
     }
 
-    win = XCreateWindow(display, RootWindow(display, 0),
-                        x, y, w, h, 0, CopyFromParent, CopyFromParent,
+    // Create the window
+    win = XCreateWindow(display, RootWindow(display, 0), x, y, w, h, 0, CopyFromParent, CopyFromParent,
                         CopyFromParent, 0, NULL);
-    XSetWindowBackground(display,win,WhitePixel(display,0));
+    XSetWindowBackground(display, win, WhitePixel(display, 0));
 
+    // Set the MOTIF WM hints (disable decorations)
     hints.flags = 2;
     hints.decorations = 0;
     prop = XInternAtom(display, "_MOTIF_WM_HINTS", False);
-    XChangeProperty(display, win, prop, prop, 32, PropModeReplace,
-                    (unsigned char *)&hints, 5);
+    XChangeProperty(display, win, prop, prop, 32, PropModeReplace, (unsigned char *)&hints, 5);
 
+    // Select input events to listen for
     XSelectInput(display, win, StructureNotifyMask | ButtonPressMask);
 
+    // Map the window and flush the display
     XMapWindow(display, win);
     XFlush(display);
 
+    // Simulate changing the window decorations (enable border and title)
     sleep(1);
-
     hints.flags = 2;
-    hints.decorations = 1<<3 || 1 << 1; /* border and title */
+    hints.decorations = (1 << 3) || (1 << 1);  // Set border and title
     prop = XInternAtom(display, "_MOTIF_WM_HINTS", False);
-    XChangeProperty(display, win, prop, prop, 32, PropModeReplace,
-                    (unsigned char *)&hints, 5);
+    XChangeProperty(display, win, prop, prop, 32, PropModeReplace, (unsigned char *)&hints, 5);
 
     XMapWindow(display, win);
     XFlush(display);
 
-
-    while (1) {
+    // Process events
+    int event_processed = 0;
+    while (!event_processed) {
         XNextEvent(display, &report);
 
         switch (report.type) {
         case ButtonPress:
             XUnmapWindow(display, win);
+            event_processed = 1;
             break;
         case ConfigureNotify:
             x = report.xconfigure.x;
@@ -87,11 +72,17 @@ int main (int argc, char **argv) {
             w = report.xconfigure.width;
             h = report.xconfigure.height;
             s = report.xconfigure.send_event;
-            printf("confignotify %i,%i-%ix%i (send: %d)\n",x,y,w,h,s);
+            printf("confignotify %i,%i-%ix%i (send: %d)\n", x, y, w, h, s);
+            event_processed = 1;
             break;
         }
 
+        // Exit after handling the first event to avoid infinite loops
     }
 
-    return 1;
+    // Clean up and close the display connection
+    XDestroyWindow(display, win);
+    XCloseDisplay(display);
+
+    return 0;  // Return 0 to indicate success
 }

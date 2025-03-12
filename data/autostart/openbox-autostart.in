@@ -36,8 +36,3 @@ if [ -f "$USERAUTOSTART" ]; then
 elif [ -f "$USERAUTOSTART.sh" ]; then
     sh "$USERAUTOSTART.sh"
 fi
-
-# Finally, run the XDG autostart items.
-# These are typically found in /etc/xdg/autostart and/or ~/.config/autostart.
-# This requires PyXDG to be installed.
-@libexecdir@/openbox-xdg-autostart "$@"

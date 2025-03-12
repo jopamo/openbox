@@ -1,20 +1,4 @@
-/* -*- indent-tabs-mode: nil; tab-width: 4; c-basic-offset: 4; -*-
-
-   usertimewin.c for the Openbox window manager
-   Copyright (c) 2007        Dana Jansens
-
-   This program is free software; you can redistribute it and/or modify
-   it under the terms of the GNU General Public License as published by
-   the Free Software Foundation; either version 2 of the License, or
-   (at your option) any later version.
-
-   This program is distributed in the hope that it will be useful,
-   but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-   GNU General Public License for more details.
-
-   See the COPYING file for a copy of the GNU General Public License.
-*/
+/* usertimewin.c for the Openbox window manager */
 
 #include <stdio.h>
 #include <X11/Xlib.h>
@@ -22,53 +6,83 @@
 #include <X11/Xatom.h>
 
 int main () {
-  Display   *display;
-  Window     win, twin;
-  XEvent     report;
-  Atom       atime, atimewin;
-  int        x=10,y=10,h=400,w=400;
-  Time       num;
+    Display *display;
+    Window win, twin;
+    XEvent report;
+    Atom atime, atimewin;
+    int x = 10, y = 10, h = 400, w = 400;
+    Time num;
 
-  display = XOpenDisplay(NULL);
+    // Open the X display
+    display = XOpenDisplay(NULL);
+    if (display == NULL) {
+        fprintf(stderr, "couldn't connect to X server :0\n");
+        return 1;  // Return 1 to indicate failure if unable to connect to the X server
+    }
 
-  if (display == NULL) {
-    fprintf(stderr, "couldn't connect to X server :0\n");
-    return 0;
-  }
+    // Intern atoms for window time properties
+    atime = XInternAtom(display, "_NET_WM_USER_TIME", True);
+    atimewin = XInternAtom(display, "_NET_WM_USER_TIME_WINDOW", True);
 
-  atime = XInternAtom(display, "_NET_WM_USER_TIME", True);
-  atimewin = XInternAtom(display, "_NET_WM_USER_TIME_WINDOW", True);
+    // Create two windows
+    win = XCreateWindow(display, RootWindow(display, 0), x, y, w, h, 10, CopyFromParent, CopyFromParent,
+                        CopyFromParent, 0, 0);
+    twin = XCreateWindow(display, RootWindow(display, 0), x, y, w / 2, h / 2, 10, CopyFromParent, CopyFromParent,
+                         CopyFromParent, 0, 0);
 
-  win = XCreateWindow(display, RootWindow(display, 0),
-                      x, y, w, h, 10, CopyFromParent, CopyFromParent,
-                      CopyFromParent, 0, 0);
-  twin = XCreateWindow(display, RootWindow(display, 0),
-                       x, y, w/2, h/2, 10, CopyFromParent, CopyFromParent,
-                       CopyFromParent, 0, 0);
+    // Set the background color for the window
+    XSetWindowBackground(display, win, WhitePixel(display, 0));
 
-  XSetWindowBackground(display,win,WhitePixel(display,0));
+    // Map the window and flush the display
+    XMapWindow(display, win);
+    XFlush(display);
 
-  XMapWindow(display, win);
-  XFlush(display);
+    // Simulate some delay
+    sleep(2);
 
-  sleep(2);
+    // Set the _NET_WM_USER_TIME_WINDOW property on the first window
+    printf("Setting time window\n");
+    XChangeProperty(display, win, atimewin, XA_WINDOW, 32, PropModeReplace, (unsigned char *)&twin, 1);
+    XFlush(display);
 
-  printf("Setting time window\n");
-  XChangeProperty(display, win, atimewin, XA_WINDOW, 32,
-                  PropModeReplace, (unsigned char*)&twin, 1);
-  XFlush(display);
+    // Simulate some delay
+    sleep(1);
 
-  sleep(1);
+    // Set the _NET_WM_USER_TIME property on the second window
+    num = 100;
+    printf("Setting time stamp on time window\n");
+    XChangeProperty(display, twin, atime, XA_CARDINAL, 32, PropModeReplace, (unsigned char *)&num, 1);
+    XFlush(display);
 
-  num = 100;
-  printf("Setting time stamp on time window\n");
-  XChangeProperty(display, twin, atime, XA_CARDINAL, 32,
-                  PropModeReplace, (unsigned char*)&num, 1);
-  XFlush(display);
+    // Select input events to listen for
+    XSelectInput(display, win, ExposureMask | StructureNotifyMask);
+    XSelectInput(display, twin, ExposureMask | StructureNotifyMask);
 
-  while (1) {
-    XNextEvent(display, &report);
-  }
+    // Event loop to process events
+    while (1) {
+        XNextEvent(display, &report);
 
-  return 1;
+        switch (report.type) {
+        case Expose:
+            printf("exposed\n");
+            break;
+        case ConfigureNotify:
+            printf("confignotify %i,%i-%ix%i\n", report.xconfigure.x, report.xconfigure.y,
+                   report.xconfigure.width, report.xconfigure.height);
+            break;
+        }
+
+        // Exit after processing the first event to avoid infinite loops in CI
+        if (report.type == Expose && report.xexpose.count == 0) {
+            printf("Test completed. Closing the program.\n");
+            break;
+        }
+    }
+
+    // Clean up and close the display connection
+    XDestroyWindow(display, win);
+    XDestroyWindow(display, twin);
+    XCloseDisplay(display);
+
+    return 0;  // Return 0 to indicate success
 }

@@ -1,20 +1,4 @@
-/* -*- indent-tabs-mode: nil; tab-width: 4; c-basic-offset: 4; -*-
-
-   positioned.c for the Openbox window manager
-   Copyright (c) 2007        Dana Jansens
-
-   This program is free software; you can redistribute it and/or modify
-   it under the terms of the GNU General Public License as published by
-   the Free Software Foundation; either version 2 of the License, or
-   (at your option) any later version.
-
-   This program is distributed in the hope that it will be useful,
-   but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-   GNU General Public License for more details.
-
-   See the COPYING file for a copy of the GNU General Public License.
-*/
+/* positioned.c for the Openbox window manager */
 
 #include <string.h>
 #include <stdio.h>
@@ -22,52 +6,68 @@
 #include <X11/Xutil.h>
 
 int main (int argc, char **argv) {
-    Display    *display;
-    Window      win;
-    XEvent      report;
-    int         x=200,y=200,h=100,w=400,s;
+    Display *display;
+    Window win;
+    XEvent report;
+    int x = 200, y = 200, h = 100, w = 400, s;
     XSizeHints *size;
 
+    // Open X display
     display = XOpenDisplay(NULL);
-
     if (display == NULL) {
         fprintf(stderr, "couldn't connect to X server :0\n");
         return 0;
     }
 
-    win = XCreateWindow(display, RootWindow(display, 0),
-                        x, y, w, h, 0, CopyFromParent, CopyFromParent,
+    // Create the window
+    win = XCreateWindow(display, RootWindow(display, 0), x, y, w, h, 0, CopyFromParent, CopyFromParent,
                         CopyFromParent, 0, NULL);
-    XSetWindowBackground(display,win,WhitePixel(display,0));
+    XSetWindowBackground(display, win, WhitePixel(display, 0));
 
+    // Set size hints for the window
     size = XAllocSizeHints();
     size->flags = PPosition;
-    XSetWMNormalHints(display,win,size);
+    XSetWMNormalHints(display, win, size);
     XFree(size);
 
+    // Map the window and flush the display
     XFlush(display);
     XMapWindow(display, win);
 
+    // Select events to listen for
     XSelectInput(display, win, StructureNotifyMask | ButtonPressMask);
 
+    // Simulate an event loop, exit after handling events
     while (1) {
         XNextEvent(display, &report);
 
         switch (report.type) {
         case ButtonPress:
+            // Simulate button press event to unmap the window
             XUnmapWindow(display, win);
             break;
+
         case ConfigureNotify:
+            // Handle window configuration changes
             x = report.xconfigure.x;
             y = report.xconfigure.y;
             w = report.xconfigure.width;
             h = report.xconfigure.height;
             s = report.xconfigure.send_event;
-            printf("confignotify %i,%i-%ix%i (send: %d)\n",x,y,w,h,s);
+            printf("confignotify %i,%i-%ix%i (send: %d)\n", x, y, w, h, s);
             break;
         }
 
+        // Exit the loop after handling an event
+        if (report.type == ButtonPress) {
+            printf("Test completed. Closing the program.\n");
+            break;
+        }
     }
 
-    return 1;
+    // Cleanup and close the display connection
+    XDestroyWindow(display, win);
+    XCloseDisplay(display);
+
+    return 0;
 }

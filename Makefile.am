@@ -59,9 +59,6 @@ dist_rc_SCRIPTS = \
 nodist_rc_SCRIPTS = \
 	data/autostart/autostart
 
-dist_libexec_SCRIPTS = \
-	data/autostart/openbox-xdg-autostart
-
 nodist_libexec_SCRIPTS = \
 	data/autostart/openbox-autostart
 

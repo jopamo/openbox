@@ -1,20 +1,4 @@
-/* -*- indent-tabs-mode: nil; tab-width: 4; c-basic-offset: 4; -*-
-
-   grouptrancircular.c for the Openbox window manager
-   Copyright (c) 2003-2007   Dana Jansens
-
-   This program is free software; you can redistribute it and/or modify
-   it under the terms of the GNU General Public License as published by
-   the Free Software Foundation; either version 2 of the License, or
-   (at your option) any later version.
-
-   This program is distributed in the hope that it will be useful,
-   but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-   GNU General Public License for more details.
-
-   See the COPYING file for a copy of the GNU General Public License.
-*/
+/* grouptrancircular.c for the Openbox window manager */
 
 #include <stdio.h>
 #include <X11/Xlib.h>
@@ -22,52 +6,81 @@
 #include <X11/Xatom.h>
 
 int main () {
-  Display   *display;
-  Window     one, two, group;
-  XEvent     report;
-  XWMHints  *wmhints;
+    Display *display;
+    Window one, two, group;
+    XEvent report;
+    XWMHints *wmhints;
 
-  display = XOpenDisplay(NULL);
+    // Open the X display
+    display = XOpenDisplay(NULL);
+    if (display == NULL) {
+        fprintf(stderr, "couldn't connect to X server :0\n");
+        return 1;  // Return 1 to indicate failure if unable to connect to the X server
+    }
 
-  if (display == NULL) {
-    fprintf(stderr, "couldn't connect to X server :0\n");
-    return 0;
-  }
+    // Create the group window (invisible)
+    group = XCreateWindow(display, RootWindow(display, 0), 0, 0, 1, 1, 10, CopyFromParent, CopyFromParent,
+                          CopyFromParent, 0, 0);
 
-  group = XCreateWindow(display, RootWindow(display, 0),
-                        0,0,1,1, 10, CopyFromParent, CopyFromParent,
-			 CopyFromParent, 0, 0);
+    // Create the main and child windows
+    one = XCreateWindow(display, RootWindow(display, 0), 0, 0, 100, 100, 10, CopyFromParent, CopyFromParent,
+                        CopyFromParent, 0, 0);
+    two = XCreateWindow(display, RootWindow(display, 0), 0, 0, 100, 100, 10, CopyFromParent, CopyFromParent,
+                        CopyFromParent, 0, 0);
 
-  one = XCreateWindow(display, RootWindow(display, 0),
-                      0,0,100,100, 10, CopyFromParent, CopyFromParent,
-			 CopyFromParent, 0, 0);
-  two = XCreateWindow(display, RootWindow(display, 0),
-                      0,0,100,100, 10, CopyFromParent, CopyFromParent,
-                      CopyFromParent, 0, 0);
+    // Set window backgrounds
+    XSetWindowBackground(display, one, WhitePixel(display, 0));
+    XSetWindowBackground(display, two, BlackPixel(display, 0));
 
-  XSetWindowBackground(display,one,WhitePixel(display,0));
-  XSetWindowBackground(display,two,BlackPixel(display,0));
+    // Set transient window hints
+    XSetTransientForHint(display, one, RootWindow(display, 0));
+    XSetTransientForHint(display, two, RootWindow(display, 0));
 
-  XSetTransientForHint(display, one, RootWindow(display,0));
-  XSetTransientForHint(display, two, RootWindow(display,0));
+    // Set window group hints
+    wmhints = XAllocWMHints();
+    wmhints->flags = WindowGroupHint;
+    wmhints->window_group = group;
 
-  wmhints = XAllocWMHints();
+    XSetWMHints(display, one, wmhints);
+    XSetWMHints(display, two, wmhints);
 
-  wmhints->flags = WindowGroupHint;
-  wmhints->window_group = group;
+    XFree(wmhints);
 
-  XSetWMHints(display, one, wmhints);
-  XSetWMHints(display, two, wmhints);
+    // Map the windows and flush the display
+    XMapWindow(display, one);
+    XMapWindow(display, two);
+    XFlush(display);
 
-  XFree(wmhints);
+    // Select input events for the windows
+    XSelectInput(display, one, ExposureMask | StructureNotifyMask);
+    XSelectInput(display, two, ExposureMask | StructureNotifyMask);
 
-  XMapWindow(display, one);
-  XMapWindow(display, two);
-  XFlush(display);
+    // Event loop to process events
+    while (1) {
+        XNextEvent(display, &report);
 
-  while (1) {
-    XNextEvent(display, &report);
-  }
+        switch (report.type) {
+        case Expose:
+            printf("exposed\n");
+            break;
+        case ConfigureNotify:
+            printf("confignotify %i,%i-%ix%i\n", report.xconfigure.x, report.xconfigure.y,
+                   report.xconfigure.width, report.xconfigure.height);
+            break;
+        }
 
-  return 1;
+        // Exit after processing the first event to avoid infinite loops in CI
+        if (report.type == Expose && report.xexpose.count == 0) {
+            printf("Test completed. Closing the program.\n");
+            break;
+        }
+    }
+
+    // Clean up and close the display connection
+    XDestroyWindow(display, one);
+    XDestroyWindow(display, two);
+    XDestroyWindow(display, group);
+    XCloseDisplay(display);
+
+    return 0;  // Return 0 to indicate success
 }

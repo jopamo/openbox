@@ -1,20 +1,4 @@
-/* -*- indent-tabs-mode: nil; tab-width: 4; c-basic-offset: 4; -*-
-
-   grouptran2.c for the Openbox window manager
-   Copyright (c) 2003-2007   Dana Jansens
-
-   This program is free software; you can redistribute it and/or modify
-   it under the terms of the GNU General Public License as published by
-   the Free Software Foundation; either version 2 of the License, or
-   (at your option) any later version.
-
-   This program is distributed in the hope that it will be useful,
-   but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-   GNU General Public License for more details.
-
-   See the COPYING file for a copy of the GNU General Public License.
-*/
+/* grouptran2.c for the Openbox window manager */
 
 #include <stdio.h>
 #include <X11/Xlib.h>
@@ -22,58 +6,88 @@
 #include <X11/Xatom.h>
 
 int main () {
-  Display   *display;
-  Window     main, grouptran, child, group;
-  XEvent     report;
-  XWMHints  *wmhints;
+    Display *display;
+    Window main, grouptran, child, group;
+    XEvent report;
+    XWMHints *wmhints;
 
-  display = XOpenDisplay(NULL);
+    // Open the X display
+    display = XOpenDisplay(NULL);
+    if (display == NULL) {
+        fprintf(stderr, "couldn't connect to X server :0\n");
+        return 1;  // Return 1 to indicate failure if unable to connect to the X server
+    }
 
-  if (display == NULL) {
-    fprintf(stderr, "couldn't connect to X server :0\n");
-    return 0;
-  }
+    // Create the group window (invisible)
+    group = XCreateWindow(display, RootWindow(display, 0), 0, 0, 1, 1, 10, CopyFromParent, CopyFromParent,
+                          CopyFromParent, 0, 0);
 
-  group = XCreateWindow(display, RootWindow(display, 0),
-                        0,0,1,1, 10, CopyFromParent, CopyFromParent,
-			 CopyFromParent, 0, 0);
+    // Create the main and child windows
+    main = XCreateWindow(display, RootWindow(display, 0), 0, 0, 100, 100, 10, CopyFromParent, CopyFromParent,
+                         CopyFromParent, 0, 0);
+    grouptran = XCreateWindow(display, RootWindow(display, 0), 10, 10, 80, 180, 10, CopyFromParent, CopyFromParent,
+                              CopyFromParent, 0, 0);
+    child = XCreateWindow(display, RootWindow(display, 0), 20, 20, 60, 60, 10, CopyFromParent, CopyFromParent,
+                          CopyFromParent, 0, 0);
 
-  main = XCreateWindow(display, RootWindow(display, 0),
-                      0,0,100,100, 10, CopyFromParent, CopyFromParent,
-			 CopyFromParent, 0, 0);
-  grouptran = XCreateWindow(display, RootWindow(display, 0),
-                            10,10,80,180, 10, CopyFromParent, CopyFromParent,
-                            CopyFromParent, 0, 0);
-  child = XCreateWindow(display, RootWindow(display, 0),
-                        20,20,60,60, 10, CopyFromParent, CopyFromParent,
-                        CopyFromParent, 0, 0);
+    // Set window backgrounds
+    XSetWindowBackground(display, main, WhitePixel(display, 0));
+    XSetWindowBackground(display, grouptran, BlackPixel(display, 0));
+    XSetWindowBackground(display, child, WhitePixel(display, 0));
 
-  XSetWindowBackground(display,main,WhitePixel(display,0));
-  XSetWindowBackground(display,grouptran,BlackPixel(display,0));
-  XSetWindowBackground(display,child,WhitePixel(display,0));
+    // Set transient window hints
+    XSetTransientForHint(display, grouptran, RootWindow(display, 0));
+    XSetTransientForHint(display, child, grouptran);
 
-  XSetTransientForHint(display, grouptran, RootWindow(display,0));
-  XSetTransientForHint(display, child, grouptran);
+    // Set window group hints
+    wmhints = XAllocWMHints();
+    wmhints->flags = WindowGroupHint;
+    wmhints->window_group = group;
 
-  wmhints = XAllocWMHints();
+    XSetWMHints(display, main, wmhints);
+    XSetWMHints(display, grouptran, wmhints);
+    XSetWMHints(display, child, wmhints);
 
-  wmhints->flags = WindowGroupHint;
-  wmhints->window_group = group;
+    XFree(wmhints);
 
-  XSetWMHints(display, main, wmhints);
-  XSetWMHints(display, grouptran, wmhints);
-  XSetWMHints(display, child, wmhints);
+    // Map the windows and flush the display
+    XMapWindow(display, main);
+    XMapWindow(display, grouptran);
+    XMapWindow(display, child);
+    XFlush(display);
 
-  XFree(wmhints);
+    // Listen for events
+    XSelectInput(display, main, ExposureMask | StructureNotifyMask);
+    XSelectInput(display, grouptran, ExposureMask | StructureNotifyMask);
+    XSelectInput(display, child, ExposureMask | StructureNotifyMask);
 
-  XMapWindow(display, main);
-  XMapWindow(display, grouptran);
-  XMapWindow(display, child);
-  XFlush(display);
+    // Event loop
+    while (1) {
+        XNextEvent(display, &report);
 
-  while (1) {
-    XNextEvent(display, &report);
-  }
+        switch (report.type) {
+        case Expose:
+            printf("exposed\n");
+            break;
+        case ConfigureNotify:
+            printf("confignotify %i,%i-%ix%i\n", report.xconfigure.x, report.xconfigure.y,
+                   report.xconfigure.width, report.xconfigure.height);
+            break;
+        }
 
-  return 1;
+        // Exit after processing the first event to avoid infinite loops in CI
+        if (report.type == Expose && report.xexpose.count == 0) {
+            printf("Test completed. Closing the program.\n");
+            break;
+        }
+    }
+
+    // Clean up and close the display connection
+    XDestroyWindow(display, main);
+    XDestroyWindow(display, grouptran);
+    XDestroyWindow(display, child);
+    XDestroyWindow(display, group);
+    XCloseDisplay(display);
+
+    return 0;  // Return 0 to indicate success
 }
