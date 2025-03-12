@@ -36,7 +36,8 @@ void reply(Display* display, Atom _extents) {
       XGetWindowProperty(display, report.xproperty.window, _extents, 0, 4, False, XA_CARDINAL, &ret_type, &ret_format,
                          &ret_items, &ret_bytesleft, (unsigned char**)&prop_return);
       if (ret_type == XA_CARDINAL && ret_format == 32 && ret_items == 4) {
-        printf("  got new extents %d, %d, %d, %d\n", prop_return[0], prop_return[1], prop_return[2], prop_return[3]);
+        printf("  got new extents %lu, %lu, %lu, %lu\n",
+       prop_return[0], prop_return[1], prop_return[2], prop_return[3]);
       }
       break;
     }

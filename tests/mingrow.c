@@ -1,6 +1,7 @@
 /* mingrow.c for the Openbox window manager */
 
 #include <stdio.h>
+#include <unistd.h>
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
 

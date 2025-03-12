@@ -1,20 +1,4 @@
-/* -*- indent-tabs-mode: nil; tab-width: 4; c-basic-offset: 4; -*-
-
-   icons.c for the Openbox window manager
-   Copyright (c) 2003-2007   Dana Jansens
-
-   This program is free software; you can redistribute it and/or modify
-   it under the terms of the GNU General Public License as published by
-   the Free Software Foundation; either version 2 of the License, or
-   (at your option) any later version.
-
-   This program is distributed in the hope that it will be useful,
-   but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-   GNU General Public License for more details.
-
-   See the COPYING file for a copy of the GNU General Public License.
-*/
+// icons.c for the Openbox window manager
 
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
@@ -22,6 +6,7 @@
 #include <X11/cursorfont.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <unistd.h>
 #include <assert.h>
 #include <glib.h>
 
@@ -230,7 +215,7 @@ int main(int argc, char** argv) {
         break;
     }
     /*------------------------------------ report the result */
-    printf("image[%d] %ux%u %lu\n", j, w, h, c);
+    printf("image[%d] %ux%u %u\n", j, w, h, c);
   }
 
   win = XCreateSimpleWindow(d, RootWindow(d, s), 0, 0, winw, winh, 0, 0, 0);
