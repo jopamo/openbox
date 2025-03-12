@@ -73,12 +73,14 @@ ObStackingLayer window_layer(ObWindow* self) {
       return config_dock_layer;
 
     case OB_WINDOW_CLASS_CLIENT:
-      if (self) {
+      if (self && self->type == OB_WINDOW_CLASS_CLIENT) {
         ObClient* client = (ObClient*)self;
         ob_debug("Accessing client %p in window_layer", client);
-        return client->layer;
+        if (client != NULL) {
+          return client->layer;
+        }
       }
-      ob_debug("Client is NULL in window_layer");
+      ob_debug("Client is NULL or invalid in window_layer");
       return None;
 
     case OB_WINDOW_CLASS_MENUFRAME:
