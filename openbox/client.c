@@ -689,9 +689,15 @@ void client_unmanage(ObClient* self) {
 }
 
 void client_fake_unmanage(ObClient* self) {
-  /* this is all that got allocated to get the decorations */
+  if (self == NULL) {
+    return;
+  }
 
-  frame_free(self->frame);
+  if (self->frame != NULL) {
+    frame_free(self->frame);
+    self->frame = NULL;
+  }
+
   g_slice_free(ObClient, self);
 }
 

@@ -199,11 +199,21 @@ static void set_theme_statics(ObFrame* self) {
 static void free_theme_statics(ObFrame* self) {}
 
 void frame_free(ObFrame* self) {
+  if (self == NULL) {
+    return;
+  }
+
   free_theme_statics(self);
 
-  XDestroyWindow(obt_display, self->window);
-  if (self->colormap)
+  if (self->window) {
+    XDestroyWindow(obt_display, self->window);
+    self->window = NULL;
+  }
+
+  if (self->colormap) {
     XFreeColormap(obt_display, self->colormap);
+    self->colormap = NULL;
+  }
 
   g_slice_free(ObFrame, self);
 }
