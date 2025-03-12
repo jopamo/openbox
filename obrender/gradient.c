@@ -299,59 +299,65 @@ static void gradient_solid(RrAppearance* l, gint w, gint h) {
   }
 }
 
-#define VARS(x)                                          \
-  gint len##x;                                           \
-  guint color##x[3];                                     \
-  gint cdelta##x[3], error##x[3] = {0, 0, 0}, inc##x[3]; \
-  gboolean bigslope##x[3] /* color slope > 1 */
+#define VARS(x)                                         \
+  gint len##x;                                          \
+  unsigned int color##x[3];                             \
+  int cdelta##x[3], error##x[3] = {0, 0, 0}, inc##x[3]; \
+  gboolean bigslope##x[3]; /* color slope > 1 */
+
+#define CLAMP_COLOR(val) ((val) < 0 ? 0 : ((val) > 255 ? 255 : (val)))
 
 #define SETUP(x, from, to, w)                \
   len##x = w;                                \
-  color##x[0] = from->r;                     \
-  color##x[1] = from->g;                     \
-  color##x[2] = from->b;                     \
+  color##x[0] = (unsigned int)from->r;       \
+  color##x[1] = (unsigned int)from->g;       \
+  color##x[2] = (unsigned int)from->b;       \
   cdelta##x[0] = to->r - from->r;            \
   cdelta##x[1] = to->g - from->g;            \
   cdelta##x[2] = to->b - from->b;            \
   for (int i = 0; i < 3; ++i) {              \
+    if (cdelta##x[i] < 0) {                  \
+      cdelta##x[i] = 0;                      \
+    }                                        \
     inc##x[i] = (cdelta##x[i] < 0) ? -1 : 1; \
     cdelta##x[i] = abs(cdelta##x[i]);        \
     bigslope##x[i] = cdelta##x[i] > w;       \
   }
 
-#define COLOR_RR(x, c) \
-  c->r = color##x[0];  \
-  c->g = color##x[1];  \
-  c->b = color##x[2]
+#define COLOR_RR(x, c)                            \
+  c->r = (unsigned char)CLAMP_COLOR(color##x[0]); \
+  c->g = (unsigned char)CLAMP_COLOR(color##x[1]); \
+  c->b = (unsigned char)CLAMP_COLOR(color##x[2])
 
 #define COLOR(x) \
   ((color##x[0] << RrDefaultRedOffset) + (color##x[1] << RrDefaultGreenOffset) + (color##x[2] << RrDefaultBlueOffset))
 
 #define INCREMENT(x, i) (inc##x[i])
 
-#define NEXT(x)                                   \
-  {                                               \
-    for (int i = 0; i < 3; ++i) {                 \
-      if (cdelta##x[i] == 0)                      \
-        continue;                                 \
-      if (bigslope##x[i]) {                       \
-        while (1) {                               \
-          color##x[i] += INCREMENT(x, i);         \
-          error##x[i] += len##x;                  \
-          if (error##x[i] << 1 >= cdelta##x[i]) { \
-            error##x[i] -= cdelta##x[i];          \
-            break;                                \
-          }                                       \
-        }                                         \
-      }                                           \
-      else {                                      \
-        error##x[i] += cdelta##x[i];              \
-        if (error##x[i] << 1 >= len##x) {         \
-          color##x[i] += INCREMENT(x, i);         \
-          error##x[i] -= len##x;                  \
-        }                                         \
-      }                                           \
-    }                                             \
+#define NEXT(x)                               \
+  {                                           \
+    for (int i = 0; i < 3; ++i) {             \
+      if (cdelta##x[i] == 0)                  \
+        continue;                             \
+      if (bigslope##x[i]) {                   \
+        while (1) {                           \
+          color##x[i] += INCREMENT(x, i);     \
+          error##x[i] += len##x;              \
+          if (error##x[i] >= cdelta##x[i]) {  \
+            error##x[i] -= cdelta##x[i];      \
+            break;                            \
+          }                                   \
+        }                                     \
+      }                                       \
+      else {                                  \
+        error##x[i] += cdelta##x[i];          \
+        if (error##x[i] >= len##x) {          \
+          color##x[i] += INCREMENT(x, i);     \
+          error##x[i] -= len##x;              \
+        }                                     \
+      }                                       \
+      color##x[i] = CLAMP_COLOR(color##x[i]); \
+    }                                         \
   }
 
 static void gradient_splitvertical(RrAppearance* a, gint w, gint h) {
