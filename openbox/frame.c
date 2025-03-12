@@ -205,14 +205,15 @@ void frame_free(ObFrame* self) {
 
   free_theme_statics(self);
 
+  // Destroy the window and free colormap if they exist
   if (self->window) {
     XDestroyWindow(obt_display, self->window);
-    self->window = NULL;
+    self->window = (Window)NULL;
   }
 
   if (self->colormap) {
     XFreeColormap(obt_display, self->colormap);
-    self->colormap = NULL;
+    self->colormap = (Colormap)NULL;
   }
 
   g_slice_free(ObFrame, self);
