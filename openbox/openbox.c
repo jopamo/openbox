@@ -82,8 +82,6 @@
 #include <X11/Xcursor/Xcursor.h>
 #endif
 
-pthread_mutex_t rr_instance_mutex = PTHREAD_MUTEX_INITIALIZER;
-
 RrInstance* ob_rr_inst;
 RrImageCache* ob_rr_icons;
 RrTheme* ob_rr_theme;
@@ -176,7 +174,6 @@ gint main(gint argc, gchar** argv) {
 
   ob_screen = DefaultScreen(obt_display);
 
-  pthread_mutex_lock(&rr_instance_mutex);
   ob_rr_inst = RrInstanceNew(obt_display, ob_screen);
   if (ob_rr_inst == NULL)
     ob_exit_with_error(_("Failed to initialize the obrender library."));
@@ -184,7 +181,6 @@ gint main(gint argc, gchar** argv) {
      are generally 3 icon sizes needed: the titlebar icon, the menu icon,
      and the alt-tab icon
   */
-  pthread_mutex_unlock(&rr_instance_mutex);
 
   ob_rr_icons = RrImageCacheNew(3);
 
@@ -575,108 +571,98 @@ static void parse_env(void) {
   }
 }
 
+static void print_error_and_exit(const gchar* msg) {
+  g_printerr("%s\n", msg);
+  exit(1);
+}
+
+static gboolean handle_argument_with_value(gint* argc,
+                                           gchar** argv,
+                                           gint* i,
+                                           const gchar* arg_name,
+                                           gchar** target_value) {
+  if (strcmp(argv[*i], arg_name) == 0) {
+    if (*i == *argc - 1) {
+      gchar* err = g_strdup_printf(_("%s requires an argument\n"), arg_name);
+      print_error_and_exit(err);
+    }
+    *target_value = argv[*i + 1];
+    remove_args(argc, argv, *i, 2);
+    --(*i);  // Argument was removed, so go back
+    return TRUE;
+  }
+  return FALSE;
+}
+
 static void parse_args(gint* argc, gchar** argv) {
   gint i;
 
   for (i = 1; i < *argc; ++i) {
-    if (!strcmp(argv[i], "--version")) {
+    if (strcmp(argv[i], "--version") == 0) {
       print_version();
       exit(0);
     }
-    else if (!strcmp(argv[i], "--help")) {
+    else if (strcmp(argv[i], "--help") == 0) {
       print_help();
       exit(0);
     }
-    else if (!strcmp(argv[i], "--g-fatal-warnings")) {
+    else if (strcmp(argv[i], "--g-fatal-warnings") == 0) {
       g_log_set_always_fatal(G_LOG_LEVEL_CRITICAL);
     }
-    else if (!strcmp(argv[i], "--replace")) {
+    else if (strcmp(argv[i], "--replace") == 0) {
       ob_replace_wm = TRUE;
       remove_args(argc, argv, i, 1);
-      --i; /* this arg was removed so go back */
+      --i;  // Argument was removed, so go back
     }
-    else if (!strcmp(argv[i], "--sync")) {
+    else if (strcmp(argv[i], "--sync") == 0) {
       xsync = TRUE;
     }
-    else if (!strcmp(argv[i], "--startup")) {
-      if (i == *argc - 1) /* no args left */
-        g_printerr(_("%s requires an argument\n"), "--startup");
-      else {
-        /* this will be in the current locale encoding, which is
-           what we want */
-        startup_cmd = argv[i + 1];
-        remove_args(argc, argv, i, 2);
-        --i; /* this arg was removed so go back */
-        ob_debug("--startup %s", startup_cmd);
-      }
+    else if (handle_argument_with_value(argc, argv, &i, "--startup", &startup_cmd)) {
+      ob_debug("--startup %s", startup_cmd);
     }
-    else if (!strcmp(argv[i], "--debug")) {
+    else if (strcmp(argv[i], "--debug") == 0) {
       ob_debug_enable(OB_DEBUG_NORMAL, TRUE);
       ob_debug_enable(OB_DEBUG_APP_BUGS, TRUE);
     }
-    else if (!strcmp(argv[i], "--debug-focus")) {
+    else if (strcmp(argv[i], "--debug-focus") == 0) {
       ob_debug_enable(OB_DEBUG_FOCUS, TRUE);
     }
-    else if (!strcmp(argv[i], "--debug-session")) {
+    else if (strcmp(argv[i], "--debug-session") == 0) {
       ob_debug_enable(OB_DEBUG_SM, TRUE);
     }
-    else if (!strcmp(argv[i], "--debug-xinerama")) {
+    else if (strcmp(argv[i], "--debug-xinerama") == 0) {
       ob_debug_xinerama = TRUE;
     }
-    else if (!strcmp(argv[i], "--reconfigure")) {
+    else if (strcmp(argv[i], "--reconfigure") == 0) {
       remote_control = 1;
     }
-    else if (!strcmp(argv[i], "--restart")) {
+    else if (strcmp(argv[i], "--restart") == 0) {
       remote_control = 2;
     }
-    else if (!strcmp(argv[i], "--exit")) {
+    else if (strcmp(argv[i], "--exit") == 0) {
       remote_control = 3;
     }
-    else if (!strcmp(argv[i], "--config-file")) {
-      if (i == *argc - 1) /* no args left */
-        g_printerr(_("%s requires an argument\n"), "--config-file");
-      else {
-        /* this will be in the current locale encoding, which is
-           what we want */
-        config_file = argv[i + 1];
-        ++i; /* skip the argument */
-        ob_debug("--config-file %s", config_file);
-      }
+    else if (handle_argument_with_value(argc, argv, &i, "--config-file", &config_file)) {
+      ob_debug("--config-file %s", config_file);
     }
-    else if (!strcmp(argv[i], "--sm-save-file")) {
-      if (i == *argc - 1) /* no args left */
-        /* not translated cuz it's sekret */
-        g_printerr("--sm-save-file requires an argument\n");
-      else {
-        ob_sm_save_file = g_strdup(argv[i + 1]);
-        remove_args(argc, argv, i, 2);
-        --i; /* this arg was removed so go back */
-        ob_debug_type(OB_DEBUG_SM, "--sm-save-file %s", ob_sm_save_file);
-      }
+    else if (handle_argument_with_value(argc, argv, &i, "--sm-save-file", &ob_sm_save_file)) {
+      ob_debug_type(OB_DEBUG_SM, "--sm-save-file %s", ob_sm_save_file);
     }
-    else if (!strcmp(argv[i], "--sm-client-id")) {
-      if (i == *argc - 1) /* no args left */
-        /* not translated cuz it's sekret */
-        g_printerr("--sm-client-id requires an argument\n");
-      else {
-        ob_sm_id = g_strdup(argv[i + 1]);
-        remove_args(argc, argv, i, 2);
-        --i; /* this arg was removed so go back */
-        ob_debug_type(OB_DEBUG_SM, "--sm-client-id %s", ob_sm_id);
-      }
+    else if (handle_argument_with_value(argc, argv, &i, "--sm-client-id", &ob_sm_id)) {
+      ob_debug_type(OB_DEBUG_SM, "--sm-client-id %s", ob_sm_id);
     }
-    else if (!strcmp(argv[i], "--sm-disable")) {
+    else if (strcmp(argv[i], "--sm-disable") == 0) {
       ob_sm_use = FALSE;
     }
-    else if (!strcmp(argv[i], "--sm-no-load")) {
+    else if (strcmp(argv[i], "--sm-no-load") == 0) {
       ob_sm_restore = FALSE;
       remove_args(argc, argv, i, 1);
-      --i; /* this arg was removed so go back */
+      --i;  // Argument was removed, so go back
     }
     else {
-      /* this is a memleak.. oh well.. heh */
       gchar* err = g_strdup_printf(_("Invalid command line argument \"%s\"\n"), argv[i]);
       ob_exit_with_error(err);
+      g_free(err);
     }
   }
 }
