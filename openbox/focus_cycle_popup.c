@@ -166,11 +166,13 @@ void focus_cycle_popup_startup(gboolean reconfig) {
     gint x, y, o;
 
     tc = ob_rr_theme->osd_text_active_color;
-    color = ((tc->r & 0xff) << RrDefaultRedOffset) + ((tc->g & 0xff) << RrDefaultGreenOffset) +
-            ((tc->b & 0xff) << RrDefaultBlueOffset);
+
+    /* Perform bit shifts in an unsigned context to avoid undefined behavior */
+    color = ((guint32)(tc->r & 0xff) << RrDefaultRedOffset) | ((guint32)(tc->g & 0xff) << RrDefaultGreenOffset) |
+            ((guint32)(tc->b & 0xff) << RrDefaultBlueOffset);
 
     o = 0;
-    for (x = 0; x < HILITE_SIZE; x++)
+    for (x = 0; x < HILITE_SIZE; x++) {
       for (y = 0; y < HILITE_SIZE; y++) {
         guchar a;
 
@@ -184,8 +186,10 @@ void focus_cycle_popup_startup(gboolean reconfig) {
           a = 0x22;
         }
 
-        p[o++] = color + (a << RrDefaultAlphaOffset);
+        /* Use bitwise OR to combine color and alpha */
+        p[o++] = color | ((guint32)a << RrDefaultAlphaOffset);
       }
+    }
   }
 
   stacking_add(INTERNAL_AS_WINDOW(&popup));
