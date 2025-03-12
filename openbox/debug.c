@@ -46,7 +46,7 @@ static void prompt_handler(const gchar* log_domain, GLogLevelFlags log_level, co
 
 void ob_debug_startup(void) {
   ObtPaths* p = obt_paths_new();
-  gchar* cache_home = obt_paths_cache_home(p);
+  const gchar* cache_home = obt_paths_cache_home(p);
 
   // Check if cache_home is NULL or uninitialized
   if (cache_home == NULL) {
