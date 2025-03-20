@@ -87,6 +87,21 @@
 				<execute>pavucontrol-qt</execute>
 			</action>
 		</item>
+		<item label="flameshot">
+			<action name="Execute">
+				<execute>flameshot</execute>
+			</action>
+		</item>
+		<item label="texxy">
+			<action name="Execute">
+				<execute>texxy</execute>
+			</action>
+		</item>
+		<item label="1term">
+			<action name="Execute">
+				<execute>1term</execute>
+			</action>
+		</item>
 		<separator/>
 		<menu id="preferences" label="Preferences">
 			<item label="Reconfigure">
