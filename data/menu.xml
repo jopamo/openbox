@@ -1,108 +1,84 @@
 <?xml version="1.0" encoding="utf-8"?>
-<openbox_menu
-	xmlns="http://openbox.org/">
+<openbox_menu xmlns="http://openbox.org/">
 	<menu id="root-menu" label="Openbox 3">
-		<item label="lxterminal">
-			<action name="Execute">
-				<execute>lxterminal</execute>
-			</action>
-		</item>
-		<item label="qterminal">
+		<item label="qterminal" icon="/usr/share/icons/hicolor/64x64/apps/qterminal.png">
 			<action name="Execute">
 				<execute>qterminal</execute>
 			</action>
 		</item>
-		<item label="vte-2.91">
-			<action name="Execute">
-				<execute>vte-2.91 --use-theme-colors --background-color='#000000' -T 50</execute>
-			</action>
-		</item>
-		<item label="st">
-			<action name="Execute">
-				<execute>st</execute>
-			</action>
-		</item>
-		<item label="firefox-nightly-bin">
+		<item label="firefox-nightly-bin" icon="/usr/share/pixmaps/firefox.svg">
 			<action name="Execute">
 				<execute>firefox-nightly-bin</execute>
 			</action>
 		</item>
-		<item label="brave-nightly-bin">
+		<item label="brave-nightly-bin" icon="/usr/share/pixmaps/brave.svg">
 			<action name="Execute">
 				<execute>brave-nightly-bin</execute>
 			</action>
 		</item>
-		<item label="chromium-bin">
-			<action name="Execute">
-				<execute>chromium-bin</execute>
-			</action>
-		</item>
-		<item label="google-chrome-unstable">
+		<item label="google-chrome-unstable" icon="/usr/share/pixmaps/chrome.svg">
 			<action name="Execute">
 				<execute>google-chrome-unstable</execute>
 			</action>
 		</item>
-		<item label="pcmanfm">
-			<action name="Execute">
-				<execute>pcmanfm</execute>
-			</action>
-		</item>
-		<item label="pcmanfm-qt">
+		<item label="pcmanfm-qt" icon="/usr/share/icons/hicolor/scalable/apps/pcmanfm-qt.svg">
 			<action name="Execute">
 				<execute>pcmanfm-qt</execute>
 			</action>
 		</item>
-		<item label="lxqt-config">
+		<item label="lxqt-config" icon="/usr/share/icons/hicolor/scalable/apps/lxqt.svg">
 			<action name="Execute">
 				<execute>lxqt-config</execute>
 			</action>
 		</item>
-		<item label="featherpad">
+		<item label="featherpad" icon="/usr/share/icons/hicolor/scalable/apps/featherpad.svg">
 			<action name="Execute">
 				<execute>featherpad</execute>
 			</action>
 		</item>
-		<item label="keepassxc">
+		<item label="keepassxc" icon="/usr/share/icons/hicolor/256x256/apps/keepassxc.png">
 			<action name="Execute">
 				<execute>env QT_STYLE_OVERRIDE=Adwaita-Dark keepassxc</execute>
 			</action>
 		</item>
-		<item label="wireshark">
+		<item label="wireshark" icon="/usr/share/icons/hicolor/128x128/apps/org.wireshark.Wireshark.png">
 			<action name="Execute">
 				<execute>env QT_STYLE_OVERRIDE=Adwaita-Dark wireshark</execute>
 			</action>
 		</item>
-		<item label="qalculate-gtk">
+		<item label="qalculate-gtk" icon="/usr/share/icons/hicolor/128x128/apps/qalculate.png">
 			<action name="Execute">
 				<execute>qalculate-gtk</execute>
 			</action>
 		</item>
-		<item label="qbittorrent">
+		<item label="qbittorrent" icon="/usr/share/icons/hicolor/128x128/apps/qbittorrent.png">
 			<action name="Execute">
 				<execute>qbittorrent</execute>
 			</action>
 		</item>
-		<item label="pavucontrol-qt">
+		<item label="pavucontrol-qt" icon="/usr/share/pixmaps/coolspeaker.svg">
 			<action name="Execute">
 				<execute>pavucontrol-qt</execute>
 			</action>
 		</item>
-		<item label="flameshot">
+		<item label="flameshot" icon="/usr/share/icons/hicolor/48x48/apps/flameshot.png">
 			<action name="Execute">
 				<execute>flameshot</execute>
 			</action>
 		</item>
-		<item label="texxy">
+		<item label="texxy" icon="/usr/share/icons/hicolor/256x256/apps/texxy.png">
 			<action name="Execute">
 				<execute>texxy</execute>
 			</action>
 		</item>
-		<item label="1term">
+		<item label="1term" icon="/usr/share/icons/hicolor/256x256/apps/1term.png">
 			<action name="Execute">
 				<execute>1term</execute>
 			</action>
 		</item>
+
 		<separator/>
+
 		<menu id="preferences" label="Preferences">
 			<item label="Reconfigure">
 				<action name="Reconfigure"/>
@@ -111,6 +87,7 @@
 				<action name="Restart"/>
 			</item>
 		</menu>
+
 		<menu id="monitor-control" label="Monitor Control">
 			<item label="Disable eDP-1">
 				<action name="Execute">
@@ -133,6 +110,7 @@
 				</action>
 			</item>
 		</menu>
+
 		<item label="Exit">
 			<action name="Execute">
 				<execute>openbox --exit</execute>
