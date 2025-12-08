@@ -626,7 +626,7 @@ void client_unmanage(ObClient *self)
     self->kill_prompt = NULL;
 
     client_list = g_list_remove(client_list, self);
-    stacking_remove(self);
+    stacking_remove(CLIENT_AS_WINDOW(self));
     window_remove(self->window);
 
     /* once the client is out of the list, update the struts to remove its

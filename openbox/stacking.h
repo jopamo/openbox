@@ -49,7 +49,7 @@ void stacking_set_list(void);
 
 void stacking_add(struct _ObWindow *win);
 void stacking_add_nonintrusive(struct _ObWindow *win);
-#define stacking_remove(win) stacking_list = g_list_remove(stacking_list, win);
+void stacking_remove(struct _ObWindow *win);
 
 /*! Raises a window above all others in its stacking layer */
 void stacking_raise(struct _ObWindow *window);

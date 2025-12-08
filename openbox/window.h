@@ -39,6 +39,7 @@ typedef enum {
    struct */
 struct _ObWindow {
     ObWindowClass type;
+    GList* stacking_node;
 };
 
 #define WINDOW_IS_MENUFRAME(win) \
@@ -83,6 +84,7 @@ void      window_remove(Window xwin);
 /* Internal openbox-owned windows like the alt-tab popup */
 struct _ObInternalWindow {
     ObWindowClass type;
+    GList* stacking_node;
     Window window;
 };
 

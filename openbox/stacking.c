@@ -98,6 +98,13 @@ static void do_restack(GList *wins, GList *before)
         g_assert(win[i] != None); /* better not call stacking shit before
                                      setting your top level window value */
         stacking_list = g_list_insert_before(stacking_list, before, it->data);
+        {
+            ObWindow *w = it->data;
+            if (before)
+                w->stacking_node = before->prev;
+            else
+                w->stacking_node = g_list_last(stacking_list);
+        }
     }
 
 #ifdef DEBUG
@@ -114,6 +121,12 @@ static void do_restack(GList *wins, GList *before)
     g_free(win);
 
     stacking_set_list();
+}
+
+static void stacking_detach_node(GList *node) {
+    ObWindow *w = node->data;
+    w->stacking_node = NULL;
+    stacking_list = g_list_delete_link(stacking_list, node);
 }
 
 void stacking_temp_raise(ObWindow *window)
@@ -237,9 +250,7 @@ static void restack_windows(ObClient *selected, gboolean raise)
     }
 
     /* remove first so we can't run into ourself */
-    it = g_list_find(stacking_list, selected);
-    g_assert(it);
-    stacking_list = g_list_delete_link(stacking_list, it);
+    stacking_remove(CLIENT_AS_WINDOW(selected));
 
     /* go from the bottom of the stacking list up. don't move any other windows
        when lowering, we call this for each window independently */
@@ -275,7 +286,7 @@ static void restack_windows(ObClient *selected, gboolean raise)
                         else
                             group_trans = g_list_prepend(group_trans, ch);
                     }
-                    stacking_list = g_list_delete_link(stacking_list, it);
+                    stacking_detach_node(it);
                 }
             }
         }
@@ -360,7 +371,7 @@ static void restack_windows(ObClient *selected, gboolean raise)
     for (; it != above; it = next) {
         next = g_list_previous(it);
         wins = g_list_prepend(wins, it->data);
-        stacking_list = g_list_delete_link(stacking_list, it);
+        stacking_detach_node(it);
     }
 
     /* group transients go above the rest of the stuff acquired to now */
@@ -402,7 +413,7 @@ void stacking_raise(ObWindow *window)
     } else {
         GList *wins;
         wins = g_list_append(NULL, window);
-        stacking_list = g_list_remove(stacking_list, window);
+        stacking_remove(window);
         do_raise(wins);
         g_list_free(wins);
     }
@@ -418,7 +429,7 @@ void stacking_lower(ObWindow *window)
     } else {
         GList *wins;
         wins = g_list_append(NULL, window);
-        stacking_list = g_list_remove(stacking_list, window);
+        stacking_remove(window);
         do_lower(wins);
         g_list_free(wins);
     }
@@ -433,11 +444,20 @@ void stacking_below(ObWindow *window, ObWindow *below)
         return;
 
     wins = g_list_append(NULL, window);
-    stacking_list = g_list_remove(stacking_list, window);
-    before = g_list_next(g_list_find(stacking_list, below));
+    stacking_remove(window);
+    before = (below->stacking_node ? below->stacking_node->next : NULL);
     do_restack(wins, before);
     g_list_free(wins);
     stacking_list_tail = g_list_last(stacking_list);
+}
+
+void stacking_remove(ObWindow *win) {
+    if (win->stacking_node) {
+        stacking_detach_node(win->stacking_node);
+    }
+    else {
+        stacking_list = g_list_remove(stacking_list, win);
+    }
 }
 
 void stacking_add(ObWindow *win)
@@ -582,7 +602,8 @@ static gboolean stacking_occluded(ObClient *client, ObWindow *sibling_win)
     if (sibling && client->layer != sibling->layer)
         return FALSE;
 
-    for (it = g_list_previous(g_list_find(stacking_list, client)); it;
+    for (it = (CLIENT_AS_WINDOW(client)->stacking_node ?
+               CLIENT_AS_WINDOW(client)->stacking_node->prev : NULL); it;
          it = g_list_previous(it))
         if (WINDOW_IS_CLIENT(it->data)) {
             ObClient *c = it->data;
@@ -642,7 +663,8 @@ static gboolean stacking_occludes(ObClient *client, ObWindow *sibling_win)
     if (sibling && client->layer != sibling->layer)
         return FALSE;
 
-    for (it = g_list_next(g_list_find(stacking_list, client));
+    for (it = (CLIENT_AS_WINDOW(client)->stacking_node ?
+               CLIENT_AS_WINDOW(client)->stacking_node->next : NULL);
          it; it = g_list_next(it))
         if (WINDOW_IS_CLIENT(it->data)) {
             ObClient *c = it->data;
