@@ -922,27 +922,27 @@ static ObAppSettings *client_get_settings_state(ObClient *self)
                  (signed)app->type >= 0);
 
         if (app->name &&
-            !g_pattern_match(app->name, strlen(self->name), self->name, NULL))
+            !g_pattern_spec_match(app->name, strlen(self->name), self->name, NULL))
             match = FALSE;
         else if (app->group_name &&
-            !g_pattern_match(app->group_name,
+            !g_pattern_spec_match(app->group_name,
                              strlen(self->group_name), self->group_name, NULL))
             match = FALSE;
         else if (app->class &&
-                 !g_pattern_match(app->class,
+                 !g_pattern_spec_match(app->class,
                                   strlen(self->class), self->class, NULL))
             match = FALSE;
         else if (app->group_class &&
-                 !g_pattern_match(app->group_class,
+                 !g_pattern_spec_match(app->group_class,
                                   strlen(self->group_class), self->group_class,
                                   NULL))
             match = FALSE;
         else if (app->role &&
-                 !g_pattern_match(app->role,
+                 !g_pattern_spec_match(app->role,
                                   strlen(self->role), self->role, NULL))
             match = FALSE;
         else if (app->title &&
-                 !g_pattern_match(app->title,
+                 !g_pattern_spec_match(app->title,
                                   strlen(self->title), self->title, NULL))
             match = FALSE;
         else if ((signed)app->type >= 0 && app->type != self->type) {
