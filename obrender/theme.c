@@ -1451,10 +1451,10 @@ static RrPixel32* read_c_image(gint width, gint height, const guint8 *data)
         guchar g = ((*p >>  8) & 0xff);
         guchar r = ((*p >>  0) & 0xff);
 
-        *p = ((r << RrDefaultRedOffset) +
-              (g << RrDefaultGreenOffset) +
-              (b << RrDefaultBlueOffset) +
-              (a << RrDefaultAlphaOffset));
+        *p = (((guint32)r << RrDefaultRedOffset) +
+              ((guint32)g << RrDefaultGreenOffset) +
+              ((guint32)b << RrDefaultBlueOffset) +
+              ((guint32)a << RrDefaultAlphaOffset));
         p++;
     }
 
