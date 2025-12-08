@@ -596,10 +596,10 @@ RsvgLoader* LoadWithRsvg(gchar *path,
             guchar g = (in_row[x] >> 8) & 0xff;
             guchar b = in_row[x] & 0xff;
             out_row[x] =
-                ((r * 256 / (a + 1)) << RrDefaultRedOffset) +
-                ((g * 256 / (a + 1)) << RrDefaultGreenOffset) +
-                ((b * 256 / (a + 1)) << RrDefaultBlueOffset) +
-                (a << RrDefaultAlphaOffset);
+                ((guint32)(r * 256 / (a + 1)) << RrDefaultRedOffset) +
+                ((guint32)(g * 256 / (a + 1)) << RrDefaultGreenOffset) +
+                ((guint32)(b * 256 / (a + 1)) << RrDefaultBlueOffset) +
+                ((guint32)a << RrDefaultAlphaOffset);
         }
         in_row += in_stride / 4;
         out_row += *width;
