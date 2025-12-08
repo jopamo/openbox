@@ -33,6 +33,7 @@
 #include "moveresize.h"
 #include "popup.h"
 #include "gettext.h"
+#include "debug.h"
 #include "obt/keyboard.h"
 
 #include <glib.h>
