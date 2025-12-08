@@ -141,7 +141,14 @@ static gboolean replace_wm(void)
           /* Checks the local queue and incoming events for this event */
           if (xqueue_exists_local(xqueue_match_window_type, &wt))
               break;
+#ifdef __GNUC__
+#  pragma GCC diagnostic push
+#  pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+#endif
           g_usleep(G_USEC_PER_SEC / 10);
+#ifdef __GNUC__
+#  pragma GCC diagnostic pop
+#endif
           wait += G_USEC_PER_SEC / 10;
       }
 

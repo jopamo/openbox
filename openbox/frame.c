@@ -1670,12 +1670,15 @@ static void flash_done(gpointer data)
 static gboolean flash_timeout(gpointer data)
 {
     ObFrame *self = data;
-    GTimeVal now;
-
-    g_get_current_time(&now);
-    if (now.tv_sec > self->flash_end.tv_sec ||
-        (now.tv_sec == self->flash_end.tv_sec &&
-         now.tv_usec >= self->flash_end.tv_usec))
+    gint64 now_usec;
+#if GLIB_CHECK_VERSION(2, 28, 0)
+    now_usec = g_get_real_time();
+#else
+    GTimeVal now_tv;
+    g_get_current_time(&now_tv);
+    now_usec = now_tv.tv_sec * G_USEC_PER_SEC + now_tv.tv_usec;
+#endif
+    if (now_usec >= self->flash_end_usec)
         self->flashing = FALSE;
 
     if (!self->flashing) {
@@ -1702,8 +1705,14 @@ void frame_flash_start(ObFrame *self)
         self->flash_timer = g_timeout_add_full(G_PRIORITY_DEFAULT,
                                                600, flash_timeout, self,
                                                flash_done);
-    g_get_current_time(&self->flash_end);
-    g_time_val_add(&self->flash_end, G_USEC_PER_SEC * 5);
+#if GLIB_CHECK_VERSION(2, 28, 0)
+    self->flash_end_usec = g_get_real_time();
+#else
+    GTimeVal now_tv;
+    g_get_current_time(&now_tv);
+    self->flash_end_usec = now_tv.tv_sec * G_USEC_PER_SEC + now_tv.tv_usec;
+#endif
+    self->flash_end_usec += G_USEC_PER_SEC * 5;
 
     self->flashing = TRUE;
 }
@@ -1714,17 +1723,11 @@ void frame_flash_stop(ObFrame *self)
 }
 
 static gulong frame_animate_iconify_time_left(ObFrame *self,
-                                              const GTimeVal *now)
+                                              gint64 now_usec)
 {
-    glong sec, usec;
-    sec = self->iconify_animation_end.tv_sec - now->tv_sec;
-    usec = self->iconify_animation_end.tv_usec - now->tv_usec;
-    if (usec < 0) {
-        usec += G_USEC_PER_SEC;
-        sec--;
-    }
+    gint64 diff = self->iconify_animation_end_usec - now_usec;
     /* no negative values */
-    return MAX(sec * G_USEC_PER_SEC + usec, 0);
+    return MAX(diff, 0);
 }
 
 static gboolean frame_animate_iconify(gpointer p)
@@ -1732,7 +1735,6 @@ static gboolean frame_animate_iconify(gpointer p)
     ObFrame *self = p;
     gint x, y, w, h;
     gint iconx, icony, iconw;
-    GTimeVal now;
     gulong time;
     gboolean iconifying;
 
@@ -1753,8 +1755,15 @@ static gboolean frame_animate_iconify(gpointer p)
     iconifying = self->iconify_animation_going > 0;
 
     /* how far do we have left to go ? */
-    g_get_current_time(&now);
-    time = frame_animate_iconify_time_left(self, &now);
+    gint64 now_usec;
+#if GLIB_CHECK_VERSION(2, 28, 0)
+    now_usec = g_get_real_time();
+#else
+    GTimeVal now_tv;
+    g_get_current_time(&now_tv);
+    now_usec = now_tv.tv_sec * G_USEC_PER_SEC + now_tv.tv_usec;
+#endif
+    time = frame_animate_iconify_time_left(self, now_usec);
 
     if ((time > 0 && iconifying) || (time == 0 && !iconifying)) {
         /* start where the frame is supposed to be */
@@ -1827,7 +1836,6 @@ void frame_begin_iconify_animation(ObFrame *self, gboolean iconifying)
     gulong time;
     gboolean new_anim = FALSE;
     gboolean set_end = TRUE;
-    GTimeVal now;
 
     /* if there is no titlebar, just don't animate for now
        XXX it would be nice tho.. */
@@ -1835,14 +1843,21 @@ void frame_begin_iconify_animation(ObFrame *self, gboolean iconifying)
         return;
 
     /* get the current time */
-    g_get_current_time(&now);
+    gint64 now_usec;
+#if GLIB_CHECK_VERSION(2, 28, 0)
+    now_usec = g_get_real_time();
+#else
+    GTimeVal now_tv;
+    g_get_current_time(&now_tv);
+    now_usec = now_tv.tv_sec * G_USEC_PER_SEC + now_tv.tv_usec;
+#endif
 
     /* get how long until the end */
     time = FRAME_ANIMATE_ICONIFY_TIME;
     if (self->iconify_animation_going) {
         if (!!iconifying != (self->iconify_animation_going > 0)) {
             /* animation was already going on in the opposite direction */
-            time = time - frame_animate_iconify_time_left(self, &now);
+            time = time - frame_animate_iconify_time_left(self, now_usec);
         } else
             /* animation was already going in the same direction */
             set_end = FALSE;
@@ -1852,9 +1867,7 @@ void frame_begin_iconify_animation(ObFrame *self, gboolean iconifying)
 
     /* set the ending time */
     if (set_end) {
-        self->iconify_animation_end.tv_sec = now.tv_sec;
-        self->iconify_animation_end.tv_usec = now.tv_usec;
-        g_time_val_add(&self->iconify_animation_end, time);
+        self->iconify_animation_end_usec = now_usec + time;
     }
 
     if (new_anim) {
