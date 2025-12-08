@@ -87,6 +87,12 @@ gboolean xqueue_exists_local(xqueue_match_func match, gpointer data);
 gboolean xqueue_remove_local(XEvent *event_return,
                              xqueue_match_func match, gpointer data);
 
+/* Removes all MotionNotify events for a given window from the queue.
+ * The last such event is stored in event_return and not requeued.
+ * Returns TRUE if at least one MotionNotify event was found. */
+gboolean xqueue_remove_all_but_last_motion_event(XEvent *event_return,
+                                                 Window window);
+
 typedef void (*ObtXQueueFunc)(const XEvent *ev, gpointer data);
 
 /*! Begin listening for X events in the default GMainContext, and feed them

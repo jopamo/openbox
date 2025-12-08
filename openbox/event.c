@@ -301,16 +301,14 @@ static void event_hack_mods(XEvent *e)
         e->xmotion.state = obt_keyboard_only_modmasks(e->xmotion.state);
         /* compress events */
         {
-            XEvent ce;
-            ObtXQueueWindowType wt;
-
-            wt.window = e->xmotion.window;
-            wt.type = MotionNotify;
-            while (xqueue_remove_local(&ce, xqueue_match_window_type, &wt)) {
-                e->xmotion.x = ce.xmotion.x;
-                e->xmotion.y = ce.xmotion.y;
-                e->xmotion.x_root = ce.xmotion.x_root;
-                e->xmotion.y_root = ce.xmotion.y_root;
+            XEvent last_motion_event;
+            /* compress queued MotionNotify events for this window into one */
+            if (xqueue_remove_all_but_last_motion_event(&last_motion_event, e->xmotion.window)) {
+                /* update the current event with the last queued position */
+                e->xmotion.x = last_motion_event.xmotion.x;
+                e->xmotion.y = last_motion_event.xmotion.y;
+                e->xmotion.x_root = last_motion_event.xmotion.x_root;
+                e->xmotion.y_root = last_motion_event.xmotion.y_root;
             }
         }
         break;
