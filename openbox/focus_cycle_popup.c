@@ -178,9 +178,9 @@ void focus_cycle_popup_startup(gboolean reconfig)
         gint x, y, o;
 
         tc = ob_rr_theme->osd_text_active_color;
-        color = ((tc->r & 0xff) << RrDefaultRedOffset) +
-            ((tc->g & 0xff) << RrDefaultGreenOffset) +
-            ((tc->b & 0xff) << RrDefaultBlueOffset);
+        color = ((guint32)(tc->r & 0xff) << RrDefaultRedOffset) +
+            ((guint32)(tc->g & 0xff) << RrDefaultGreenOffset) +
+            ((guint32)(tc->b & 0xff) << RrDefaultBlueOffset);
 
         o = 0;
         for (x = 0; x < HILITE_SIZE; x++)
@@ -199,7 +199,7 @@ void focus_cycle_popup_startup(gboolean reconfig)
                     a = 0x22;
                 }
 
-                p[o++] = color + (a << RrDefaultAlphaOffset);
+                p[o++] = color + ((guint32)a << RrDefaultAlphaOffset);
             }
     }
 
