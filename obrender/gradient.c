@@ -258,7 +258,7 @@ static inline void repeat_pixel(RrPixel32 *start, gint w)
             memcpy(cdest, start, lenbytes);
             x -= lenbytes;
             cdest += lenbytes;
-            lenbytes <<= 1;
+            lenbytes *= 2;
             if (lenbytes > x)
                 lenbytes = x;
         }
@@ -473,7 +473,7 @@ static void gradient_solid(RrAppearance *l, gint w, gint h)
         if (!bigslope##x[i]) {                            \
             /* Y (color) is dependant on X */             \
             error##x[i] += cdelta##x[i];                  \
-            if ((error##x[i] << 1) >= len##x) {           \
+            if ((error##x[i] * 2) >= len##x) {           \
                 color##x[i] += INCREMENT(x, i);           \
                 error##x[i] -= len##x;                    \
             }                                             \
@@ -482,7 +482,7 @@ static void gradient_solid(RrAppearance *l, gint w, gint h)
             while (1) {                                   \
                 color##x[i] += INCREMENT(x, i);           \
                 error##x[i] += len##x;                    \
-                if ((error##x[i] << 1) >= cdelta##x[i]) { \
+                if ((error##x[i] * 2) >= cdelta##x[i]) { \
                     error##x[i] -= cdelta##x[i];          \
                     break;                                \
                 }                                         \
@@ -586,7 +586,7 @@ static void gradient_horizontal(RrSurface *sf, gint w, gint h)
         memcpy(datac, data, cpbytes);
         y -= cpbytes;
         datac += cpbytes;
-        cpbytes <<= 1;
+        cpbytes *= 2;
         if (cpbytes > y)
             cpbytes = y;
     }
@@ -633,7 +633,7 @@ static void gradient_mirrorhorizontal(RrSurface *sf, gint w, gint h)
         memcpy(datac, data, cpbytes);
         y -= cpbytes;
         datac += cpbytes;
-        cpbytes <<= 1;
+        cpbytes *= 2;
         if (cpbytes > y)
             cpbytes = y;
     }
