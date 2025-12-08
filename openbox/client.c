@@ -2309,10 +2309,10 @@ void client_update_icons(ObClient *self)
             /* convert it to the right bit order for ObRender */
             for (j = 0; j < w*h; ++j)
                 data[i+j] =
-                    (((data[i+j] >> 24) & 0xff) << RrDefaultAlphaOffset) +
-                    (((data[i+j] >> 16) & 0xff) << RrDefaultRedOffset)   +
-                    (((data[i+j] >>  8) & 0xff) << RrDefaultGreenOffset) +
-                    (((data[i+j] >>  0) & 0xff) << RrDefaultBlueOffset);
+                    ((guint32)((data[i+j] >> 24) & 0xff) << RrDefaultAlphaOffset) +
+                    ((guint32)((data[i+j] >> 16) & 0xff) << RrDefaultRedOffset)   +
+                    ((guint32)((data[i+j] >>  8) & 0xff) << RrDefaultGreenOffset) +
+                    ((guint32)((data[i+j] >>  0) & 0xff) << RrDefaultBlueOffset);
 
             /* add it to the image cache as an original */
             if (!img)
@@ -2374,10 +2374,10 @@ void client_update_icons(ObClient *self)
         ldata[0] = w;
         ldata[1] = h;
         for (i = 0; i < w*h; ++i)
-            ldata[i+2] = (((icon[i] >> RrDefaultAlphaOffset) & 0xff) << 24) +
-                (((icon[i] >> RrDefaultRedOffset) & 0xff) << 16) +
-                (((icon[i] >> RrDefaultGreenOffset) & 0xff) << 8) +
-                (((icon[i] >> RrDefaultBlueOffset) & 0xff) << 0);
+            ldata[i+2] = ((guint32)((icon[i] >> RrDefaultAlphaOffset) & 0xff) << 24) +
+                ((guint32)((icon[i] >> RrDefaultRedOffset) & 0xff) << 16) +
+                ((guint32)((icon[i] >> RrDefaultGreenOffset) & 0xff) << 8) +
+                ((guint32)((icon[i] >> RrDefaultBlueOffset) & 0xff) << 0);
         OBT_PROP_SETA32(self->window, NET_WM_ICON, CARDINAL, ldata, w*h+2);
         g_free(ldata);
     } else if (self->frame)
