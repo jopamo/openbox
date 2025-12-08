@@ -71,7 +71,7 @@ void popup_free(ObPopup *self)
         RrAppearanceFree(self->a_bg);
         RrAppearanceFree(self->a_text);
         window_remove(self->bg);
-        stacking_remove(self);
+        stacking_remove(INTERNAL_AS_WINDOW(self));
         g_slice_free(ObPopup, self);
     }
 }
