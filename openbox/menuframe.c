@@ -118,6 +118,7 @@ ObMenuFrame* menu_frame_new(ObMenu *menu, guint show_from, ObClient *client)
     self->client = client;
     self->direction_right = TRUE;
     self->show_from = show_from;
+    self->num_entries = 0;
 
     attr.event_mask = FRAME_EVENTMASK;
     self->window = createWindow(obt_root(ob_screen),
@@ -144,8 +145,10 @@ void menu_frame_free(ObMenuFrame *self)
     if (self) {
         while (self->entries) {
             menu_entry_frame_free(self->entries->data);
+            self->num_entries--;
             self->entries = g_list_delete_link(self->entries, self->entries);
         }
+        self->num_entries = 0; /* defensive */
 
         stacking_remove(MENUFRAME_AS_WINDOW(self));
         window_remove(self->window);
@@ -347,7 +350,7 @@ void menu_frame_move_on_screen(ObMenuFrame *self, gint x, gint y,
 
     a = screen_physical_area_monitor(monitor);
 
-    half = g_list_length(self->entries) / 2;
+    half = self->num_entries / 2;
     pos = g_list_index(self->entries, self->selected);
 
     /* if in the bottom half then check this stuff first, will keep the bottom
@@ -874,15 +877,20 @@ static void menu_frame_update(ObMenuFrame *self)
     /* if there are more menu entries than in the frame, add them */
     while (mit) {
         ObMenuEntryFrame *e = menu_entry_frame_new(mit->data, self);
-        self->entries = g_list_append(self->entries, e);
+        /* OPTIMIZATION: Prepend is O(1). Append is O(N). */
+        self->entries = g_list_prepend(self->entries, e);
+        self->num_entries++;
         mit = g_list_next(mit);
     }
+    /* OPTIMIZATION: Reverse once at the end. Total cost O(N). */
+    self->entries = g_list_reverse(self->entries);
 
     /* if there are more frame entries than menu entries then get rid of
        them */
     while (fit) {
         GList *n = g_list_next(fit);
         menu_entry_frame_free(fit->data);
+        self->num_entries--;
         self->entries = g_list_delete_link(self->entries, fit);
         fit = n;
     }
@@ -920,6 +928,7 @@ static void menu_frame_update(ObMenuFrame *self)
             tmp = flast;
             flast = g_list_previous(flast);
             menu_entry_frame_free(tmp->data);
+            self->num_entries--;
             self->entries = g_list_delete_link(self->entries, tmp);
 
             /* only the first one that we see is the last entry in the menu */
@@ -939,13 +948,14 @@ static void menu_frame_update(ObMenuFrame *self)
                                         self->menu),
                                        /* continue where we left off */
                                        self->show_from +
-                                       g_list_length(self->entries));
+                                       self->num_entries);
             more_frame = menu_entry_frame_new(more_entry, self);
             /* make it get deleted when the menu frame goes away */
             menu_entry_unref(more_entry);
 
             /* add our More... entry to the frame */
             self->entries = g_list_append(self->entries, more_frame);
+            self->num_entries++;
         }
     }
 

@@ -54,6 +54,7 @@ struct _ObMenuFrame
     ObMenuEntryFrame *child_entry;
 
     GList *entries;
+    guint num_entries; /* cached length of entries list */
     ObMenuEntryFrame *selected;
 
     /* show entries from the menu starting at this index */
