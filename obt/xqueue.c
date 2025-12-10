@@ -319,124 +319,76 @@ gboolean xqueue_pending_local(void)
     return qnum != 0;
 }
 
-/* Remove events at specific physical indices in q
- * indices_to_remove must contain indices in [0, qsz)
- */
-static void xqueue_remove_at_indices(gulong *indices_to_remove,
-                                     gulong  num_to_remove)
-{
-    XEvent *new_q;
-    gchar *remove_mask; /* Using char as boolean array */
-    gulong i, new_idx;
-    gulong k;
-
-    if (num_to_remove == 0 || qnum == 0)
-        return;
-
-    /* Create a mask for O(1) lookup during iteration */
-    remove_mask = g_new0(gchar, qsz);
-    for (k = 0; k < num_to_remove; ++k) {
-        if (indices_to_remove[k] < qsz)
-            remove_mask[indices_to_remove[k]] = 1;
-    }
-
-    new_q = g_new(XEvent, qsz);
-    new_idx = 0;
-
-    for (i = 0; i < qnum; ++i) {
-        gulong current_q_idx = (qstart + i) % qsz;
-
-        if (!remove_mask[current_q_idx]) {
-            new_q[new_idx++] = q[current_q_idx];
-        }
-    }
-
-    g_free(remove_mask);
-    g_free(q);
-    q = new_q;
-    qnum = new_idx;
-    qstart = 0; /* Queue is now contiguous starting at 0 */
-    qend = (qnum == 0) ? (gulong)-1 : (qnum - 1);
-
-    shrink();
-}
-
 gboolean xqueue_remove_all_but_last_motion_event(XEvent *event_return,
                                                  Window window)
 {
-    gulong last_motion_event_q_idx;
-    GSList *indices_to_remove_list;
-    gboolean motion_event_found;
     gulong i;
+    gulong last_pos = (gulong)-1;
 
     g_return_val_if_fail(q != NULL, FALSE);
     g_return_val_if_fail(event_return != NULL, FALSE);
 
     if (!qnum)
         read_events(FALSE);
-
-    last_motion_event_q_idx = (gulong)-1;
-    indices_to_remove_list = NULL;
-    motion_event_found = FALSE;
-
-    /* find all MotionNotify events for this window, track last index,
-     * and collect previous ones into indices_to_remove_list
-     */
-    for (i = 0; i < qnum; ++i) {
-        gulong current_q_logical_idx = (qstart + i) % qsz;
-        XEvent *current_event = &q[current_q_logical_idx];
-
-        if (current_event->type == MotionNotify &&
-            current_event->xmotion.window == window) {
-
-            if (last_motion_event_q_idx != (gulong)-1) {
-                indices_to_remove_list =
-                    g_slist_prepend(indices_to_remove_list,
-                                    GUINT_TO_POINTER((guint)last_motion_event_q_idx));
-            }
-
-            last_motion_event_q_idx = current_q_logical_idx;
-            motion_event_found = TRUE;
-        }
-    }
-
-    if (!motion_event_found) {
-        g_slist_free(indices_to_remove_list);
+    if (!qnum)
         return FALSE;
-    }
 
-    /* copy last motion event before mutating the queue */
-    *event_return = q[last_motion_event_q_idx];
+    /* pass 1: find the last MotionNotify for this window in logical order */
+    for (i = 0; i < qnum; ++i) {
+        gulong idx = (qstart + i) % qsz;
+        XEvent *ev = &q[idx];
 
-    /* also remove the last one so the queue no longer has any matching MotionNotify */
-    indices_to_remove_list =
-        g_slist_prepend(indices_to_remove_list,
-                        GUINT_TO_POINTER((guint)last_motion_event_q_idx));
-
-    {
-        gulong num_to_remove = g_slist_length(indices_to_remove_list);
-
-        if (num_to_remove > 0) {
-            gulong *indices_array;
-            GSList *current_node;
-            gulong idx;
-
-            indices_array = g_new(gulong, num_to_remove);
-            current_node = indices_to_remove_list;
-            idx = 0;
-
-            while (current_node != NULL) {
-                indices_array[idx++] =
-                    (gulong)GPOINTER_TO_UINT(current_node->data);
-                current_node = g_slist_next(current_node);
-            }
-
-            xqueue_remove_at_indices(indices_array, num_to_remove);
-            g_free(indices_array);
+        if (ev->type == MotionNotify &&
+            ev->xmotion.window == window) {
+            last_pos = idx;
         }
     }
 
-    g_slist_free(indices_to_remove_list);
+    if (last_pos == (gulong)-1)
+        return FALSE;
+
+    /* copy last motion event out before mutating the queue */
+    *event_return = q[last_pos];
+
+    /* special case: nothing else to keep */
+    if (qnum == 1) {
+        qnum = 0;
+        qstart = 0;
+        qend = (gulong)-1;
+        shrink();
+        return TRUE;
+    }
+
+    /* pass 2: compact in place, dropping all MotionNotify for this window */
+    {
+        gulong write_count = 0;
+
+        for (i = 0; i < qnum; ++i) {
+            gulong idx = (qstart + i) % qsz;
+            XEvent *ev = &q[idx];
+
+            if (ev->type == MotionNotify &&
+                ev->xmotion.window == window) {
+                continue;
+            }
+
+            gulong dst = (qstart + write_count) % qsz;
+            if (dst != idx)
+                q[dst] = *ev;
+
+            ++write_count;
+        }
+
+        qnum = write_count;
+        if (qnum == 0) {
+            qstart = 0;
+            qend = (gulong)-1;
+        } else {
+            qend = (qstart + qnum - 1) % qsz;
+        }
+    }
+
+    shrink();
     return TRUE;
 }
 
