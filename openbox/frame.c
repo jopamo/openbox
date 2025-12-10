@@ -1400,7 +1400,12 @@ ObFrameContext frame_context(ObClient *client, Window win, gint x, gint y)
 
     if (win == obt_root(ob_screen))
         return OB_FRAME_CONTEXT_ROOT;
-    if ((obwin = window_find(win))) {
+
+    /* Optimization: Check if win is the client or its frame first */
+    if (client && (win == client->window || (client->frame && win == client->frame->window))) {
+        /* We know it's this client, so it's not a dock. */
+    }
+    else if ((obwin = window_find(win))) {
         if (WINDOW_IS_DOCK(obwin)) {
           return OB_FRAME_CONTEXT_DOCK;
         }
