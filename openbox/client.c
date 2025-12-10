@@ -242,6 +242,7 @@ void client_manage(Window window, ObPrompt *prompt)
     self->wmstate = WithdrawnState; /* make sure it gets updated first time */
     self->gravity = NorthWestGravity;
     self->desktop = screen_num_desktops; /* always an invalid value */
+    self->monitor = -1;
 
     /* get all the stuff off the window */
     client_get_all(self, TRUE);
@@ -3374,13 +3375,15 @@ void client_configure(ObClient *self, gint x, gint y, gint w, gint h,
        watch out tho, don't try change stacking stuff if the window is no
        longer being managed !
     */
-    if (self->managed &&
-        (screen_find_monitor(&self->frame->area) !=
-         screen_find_monitor(&oldframe) ||
-         (final && (client_is_oldfullscreen(self, &oldclient) !=
-                    client_is_oldfullscreen(self, &self->area)))))
-    {
-        client_calc_layer(self);
+    if (self->managed) {
+        gint monitor = screen_find_monitor(&self->frame->area);
+        if (monitor != self->monitor ||
+            (final && (client_is_oldfullscreen(self, &oldclient) !=
+                       client_is_oldfullscreen(self, &self->area))))
+        {
+            self->monitor = monitor;
+            client_calc_layer(self);
+        }
     }
 }
 
@@ -4268,7 +4271,9 @@ void client_set_undecorated(ObClient *self, gboolean undecorated)
 
 guint client_monitor(ObClient *self)
 {
-    return screen_find_monitor(&self->frame->area);
+    if (self->monitor < 0)
+        self->monitor = screen_find_monitor(&self->frame->area);
+    return self->monitor;
 }
 
 ObClient *client_direct_parent(ObClient *self)

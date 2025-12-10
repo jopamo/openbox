@@ -104,6 +104,9 @@ struct _ObClient
       desktops) */
     guint desktop;
 
+    /*! The monitor where the window resides */
+    gint monitor;
+
     /*! The startup id for the startup-notification protocol. This will be
       NULL if a startup id is not set. */
     gchar *startup_id;

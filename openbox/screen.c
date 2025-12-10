@@ -1694,11 +1694,6 @@ Rect* screen_area(guint desktop, guint head, Rect *search)
     return a;
 }
 
-typedef struct {
-    Rect r;
-    gboolean subtract;
-} RectArithmetic;
-
 guint screen_find_monitor(const Rect *search)
 {
     guint i;
@@ -1706,32 +1701,6 @@ guint screen_find_monitor(const Rect *search)
     glong mostpx = 0;
     guint closest_distance_index = screen_num_monitors;
     guint closest_distance = G_MAXUINT;
-    GSList *counted = NULL;
-
-    /* we want to count the number of pixels search has on each monitor, but not
-       double count.  so if a pixel is counted on monitor A then we should not
-       count it again on monitor B. in the end we want to return the monitor
-       that had the most pixels counted under this scheme.
-
-       this assumes that monitors earlier in the list are more desirable to be
-       considered the search area's monitor.  we try the configured primary
-       monitor first, so it gets the highest preference.
-
-       if we have counted an area A, then we want to subtract the intersection
-       of A with the area on future monitors.
-       but now consider if we count an area B that intersects A. we want to
-       subtract the area B from that counted on future monitors, but not
-       subtract the intersection of A and B twice! so we would add the
-       intersection of A and B back, to account for it being subtracted both
-       for A and B.
-
-       this is the idea behind the algorithm.  we always subtract the full area
-       for monitor M intersected with the search area. we'll call that AREA.
-       but then we go through the list |counted| and for each rectangle in
-       the list that is being subtracted from future monitors, we insert a
-       request to add back the intersection of the subtracted rect with AREA.
-       vice versa for a rect in |counted| that is getting added back.
-    */
 
     if (config_primary_monitor_index < screen_num_monitors) {
         const Rect *monitor;
@@ -1748,16 +1717,6 @@ guint screen_find_monitor(const Rect *search)
                 mostpx = area;
                 mostpx_index = config_primary_monitor_index;
             }
-
-            /* add the intersection rect on the current monitor to the
-               counted list. that's easy for the first one, we just mark it for
-               subtraction */
-            {
-                RectArithmetic *ra = g_slice_new(RectArithmetic);
-                ra->r = on_current_monitor;
-                ra->subtract = TRUE;
-                counted = g_slist_prepend(counted, ra);
-            }
         }
     }
 
@@ -1765,7 +1724,6 @@ guint screen_find_monitor(const Rect *search)
         const Rect *monitor;
         Rect on_current_monitor;
         glong area;
-        GSList *it;
 
         monitor = screen_physical_area_monitor(i);
 
@@ -1788,52 +1746,10 @@ guint screen_find_monitor(const Rect *search)
         RECT_SET_INTERSECTION(on_current_monitor, *monitor, *search);
         area = RECT_AREA(on_current_monitor);
 
-        /* remove pixels we already counted on any previous monitors. */
-        for (it = counted; it; it = g_slist_next(it)) {
-            RectArithmetic *ra = it->data;
-            Rect intersection;
-
-            RECT_SET_INTERSECTION(intersection, ra->r, *search);
-            if (ra->subtract) area -= RECT_AREA(intersection);
-            else area += RECT_AREA(intersection);
-        }
-
         if (area > mostpx) {
             mostpx = area;
             mostpx_index = i;
         }
-
-        /* add the intersection rect on the current monitor I to the counted
-           list.
-           but now we need to compensate for every rectangle R already in the
-           counted list, and add a new rect R' that is the intersection of
-           R and I, but with the reverse subtraction/addition operation.
-        */
-        for (it = counted; it; it = g_slist_next(it)) {
-            RectArithmetic *saved = it->data;
-
-            if (!RECT_INTERSECTS_RECT(saved->r, on_current_monitor))
-                continue;
-            /* we are going to subtract our rect from future monitors, but
-               part of it may already be being subtracted/added, so compensate
-               to not double add/subtract. */
-            RectArithmetic *reverse = g_slice_new(RectArithmetic);
-            RECT_SET_INTERSECTION(reverse->r, saved->r, on_current_monitor);
-            reverse->subtract = !saved->subtract;
-            /* prepend so we can continue thru the list uninterupted */
-            counted = g_slist_prepend(counted, reverse);
-        }
-        {
-            RectArithmetic *ra = g_slice_new(RectArithmetic);
-            ra->r = on_current_monitor;
-            ra->subtract = TRUE;
-            counted = g_slist_prepend(counted, ra);
-        }
-    }
-
-    while (counted) {
-        g_slice_free(RectArithmetic, counted->data);
-        counted = g_slist_delete_link(counted, counted);
     }
 
     if (mostpx_index < screen_num_monitors)
@@ -1842,6 +1758,8 @@ guint screen_find_monitor(const Rect *search)
     g_assert(closest_distance_index < screen_num_monitors);
     return closest_distance_index;
 }
+
+
 
 const Rect* screen_physical_area_all_monitors(void)
 {
