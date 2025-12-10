@@ -720,7 +720,7 @@ static void move_with_keys(KeySym sym, guint state)
     screen_pointer_pos(&opx, &opy);
     XWarpPointer(obt_display, None, None, 0, 0, 0, 0, dx, dy);
     /* steal the motion events this causes */
-    XSync(obt_display, FALSE);
+    XFlush(obt_display);
     {
         XEvent ce;
         while (xqueue_remove_local(&ce, xqueue_match_type,
@@ -912,7 +912,7 @@ static void resize_with_keys(KeySym sym, guint state)
     screen_pointer_pos(&opx, &opy);
     XWarpPointer(obt_display, None, None, 0, 0, 0, 0, pdx, pdy);
     /* steal the motion events this causes */
-    XSync(obt_display, FALSE);
+    XFlush(obt_display);
     {
         XEvent ce;
         while (xqueue_remove_local(&ce, xqueue_match_type,
