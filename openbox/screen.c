@@ -77,6 +77,7 @@ static GSList *struts_top = NULL;
 static GSList *struts_left = NULL;
 static GSList *struts_right = NULL;
 static GSList *struts_bottom = NULL;
+static Rect **monitor_area_cache = NULL; /* [desktop][head] */
 
 static ObPagerPopup **desktop_popup;
 static guint         desktop_popup_timer = 0;
@@ -464,6 +465,14 @@ static void desktop_popup_free(guint n)
 void screen_shutdown(gboolean reconfig)
 {
     desktop_popup_free(screen_num_monitors);
+
+    if (monitor_area_cache) {
+        guint i;
+        for (i = 0; i < screen_num_desktops + 1; ++i)
+            g_free(monitor_area_cache[i]);
+        g_free(monitor_area_cache);
+        monitor_area_cache = NULL;
+    }
 
     if (reconfig)
         return;
@@ -1507,6 +1516,16 @@ void screen_update_areas(void)
     VALIDATE_STRUTS(struts_bottom, bottom,
                     monitor_area[screen_num_monitors].height / 2);
 
+    /* empty the cache */
+    if (monitor_area_cache) {
+        for (i = 0; i < screen_num_desktops + 1; ++i)
+            g_free(monitor_area_cache[i]);
+        g_free(monitor_area_cache);
+    }
+    monitor_area_cache = g_new0(Rect*, screen_num_desktops + 1);
+    for (i = 0; i < screen_num_desktops + 1; ++i)
+        monitor_area_cache[i] = g_new0(Rect, screen_num_monitors + 1);
+
     dims = g_new(gulong, 4 * screen_num_desktops);
     for (i = 0; i < screen_num_desktops; ++i) {
         Rect *area = screen_area(i, SCREEN_AREA_ALL_MONITORS, NULL);
@@ -1593,6 +1612,17 @@ Rect* screen_area(guint desktop, guint head, Rect *search)
     g_assert(head < screen_num_monitors || head == SCREEN_AREA_ONE_MONITOR ||
              head == SCREEN_AREA_ALL_MONITORS);
     g_assert(!(head == SCREEN_AREA_ONE_MONITOR && search == NULL));
+
+    /* use the cache if we can */
+    if (!us) {
+        guint d_idx = (desktop == DESKTOP_ALL ? screen_num_desktops : desktop);
+        guint h_idx = (head == SCREEN_AREA_ONE_MONITOR ? screen_num_monitors : head); /* this case is impossible though */
+        if (head == SCREEN_AREA_ALL_MONITORS) h_idx = screen_num_monitors;
+
+        if (monitor_area_cache[d_idx][h_idx].width > 0) {
+            return g_memdup(&monitor_area_cache[d_idx][h_idx], sizeof(Rect));
+        }
+    }
 
     /* find any struts for this monitor
        which will be affecting the search area.
@@ -1691,6 +1721,16 @@ Rect* screen_area(guint desktop, guint head, Rect *search)
     a->y = t;
     a->width = r - l + 1;
     a->height = b - t + 1;
+
+    /* cache the result */
+    if (!us) {
+        guint d_idx = (desktop == DESKTOP_ALL ? screen_num_desktops : desktop);
+        guint h_idx = (head == SCREEN_AREA_ONE_MONITOR ? screen_num_monitors : head); /* this case is impossible though */
+        if (head == SCREEN_AREA_ALL_MONITORS) h_idx = screen_num_monitors;
+
+        monitor_area_cache[d_idx][h_idx] = *a;
+    }
+
     return a;
 }
 

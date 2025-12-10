@@ -143,7 +143,6 @@ void resist_move_monitors(ObClient *c, gint resist, gint *x, gint *y)
     gint pl, pt, pr, pb; /* physical screen area edges */
     gint cl, ct, cr, cb; /* current edges */
     gint w, h; /* current size */
-    Rect desired_area;
 
     if (!resist) return;
 
@@ -162,17 +161,14 @@ void resist_move_monitors(ObClient *c, gint resist, gint *x, gint *y)
     cr = RECT_RIGHT(c->frame->area);
     cb = RECT_BOTTOM(c->frame->area);
 
-    RECT_SET(desired_area, c->frame->area.x, c->frame->area.y,
-             c->frame->area.width, c->frame->area.height);
-
     for (i = 0; i < screen_num_monitors; ++i) {
         parea = screen_physical_area_monitor(i);
 
         if (!RECT_INTERSECTS_RECT(*parea, c->frame->area))
             continue;
 
-        area = screen_area(c->desktop, SCREEN_AREA_ALL_MONITORS,
-                           &desired_area);
+        /* use the cached area */
+        area = screen_area(c->desktop, i, NULL);
 
         al = RECT_LEFT(*area);
         at = RECT_TOP(*area);
@@ -329,7 +325,6 @@ void resist_size_monitors(ObClient *c, gint resist, gint *w, gint *h,
     gint al, at, ar, ab; /* screen boundaries */
     gint pl, pt, pr, pb; /* physical screen boundaries */
     guint i;
-    Rect desired_area;
 
     if (!resist) return;
 
@@ -338,16 +333,14 @@ void resist_size_monitors(ObClient *c, gint resist, gint *w, gint *h,
     t = RECT_TOP(c->frame->area);
     b = RECT_BOTTOM(c->frame->area);
 
-    RECT_SET(desired_area, c->area.x, c->area.y, *w, *h);
-
     for (i = 0; i < screen_num_monitors; ++i) {
         parea = screen_physical_area_monitor(i);
 
         if (!RECT_INTERSECTS_RECT(*parea, c->frame->area))
             continue;
 
-        area = screen_area(c->desktop, SCREEN_AREA_ALL_MONITORS,
-                           &desired_area);
+        /* use the cached area */
+        area = screen_area(c->desktop, i, NULL);
 
         /* get the screen boundaries */
         al = RECT_LEFT(*area);
