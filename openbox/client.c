@@ -3365,8 +3365,6 @@ void client_configure(ObClient *self, gint x, gint y, gint w, gint h,
                           self->frame->size.left, self->frame->size.top, w, h);
     }
 
-    XFlush(obt_display);
-
     /* if it moved between monitors, then this can affect the stacking
        layer of this window or others - for fullscreen windows.
        also if it changed to/from oldschool fullscreen then its layer may
