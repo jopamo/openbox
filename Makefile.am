@@ -399,6 +399,14 @@ dist_mikachu_theme_DATA= \
 	themes/Mikachu/openbox-3/max.xbm \
 	themes/Mikachu/openbox-3/themerc
 
+oneg4_themedir = $(themedir)/oneg4/openbox-3
+dist_oneg4_theme_DATA= \
+	themes/oneg4/openbox-3/bullet.xbm \
+	themes/oneg4/openbox-3/close.xbm \
+	themes/oneg4/openbox-3/desk.xbm \
+	themes/oneg4/openbox-3/iconify.xbm \
+	themes/oneg4/openbox-3/max.xbm \
+	themes/oneg4/openbox-3/themerc
 
 natura_themedir = $(themedir)/Natura/openbox-3
 dist_natura_theme_DATA= \
@@ -518,11 +526,11 @@ data/autostart/openbox-autostart: $(top_srcdir)/data/autostart/openbox-autostart
 
 %.desktop: %.desktop.in Makefile
 	@echo make: creating $@
-	@$(edit) $< >$@	
+	@$(edit) $< >$@
 
 %-session: %-session.in Makefile
 	@echo make: creating $@
-	@$(edit) $< >$@	
+	@$(edit) $< >$@
 
 %.1.in: %.1.sgml
 	@echo make: creating $@
@@ -530,7 +538,7 @@ data/autostart/openbox-autostart: $(top_srcdir)/data/autostart/openbox-autostart
 
 %.1: %.1.in Makefile
 	@echo make: creating $@
-	@$(edit) $< >$@	
+	@$(edit) $< >$@
 
 dist_gnomewmfiles_DATA = \
 	data/gnome-wm-properties/openbox.desktop
