@@ -3233,7 +3233,7 @@ void client_try_configure(ObClient *self, gint *x, gint *y, gint *w, gint *h,
 void client_configure(ObClient *self, gint x, gint y, gint w, gint h,
                       gboolean user, gboolean final, gboolean force_reply)
 {
-    Rect oldframe, oldclient;
+    Rect oldclient;
     gboolean send_resize_client;
     gboolean moved = FALSE, resized = FALSE, rootmoved = FALSE;
     gboolean fmoved, fresized;
@@ -3253,7 +3253,6 @@ void client_configure(ObClient *self, gint x, gint y, gint w, gint h,
     moved = (x != self->area.x || y != self->area.y);
     resized = (w != self->area.width || h != self->area.height);
 
-    oldframe = self->frame->area;
     oldclient = self->area;
     RECT_SET(self->area, x, y, w, h);
 
