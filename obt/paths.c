@@ -288,12 +288,16 @@ gboolean obt_paths_mkdir_path(const gchar *path, gint mode)
         gchar *c, *e;
 
         c = g_strdup(path);
-        e = c;
-        while ((e = strchr(e + 1, '/'))) {
+        e = strchr(c + 1, '/');
+        while (e) {
+            /* skip trailing slash so we don't mutate past the buffer */
+            if (e[1] == '\0')
+                break;
             *e = '\0';
             if (!(ret = obt_paths_mkdir(c, mode)))
                 goto parse_mkdir_path_end;
             *e = '/';
+            e = strchr(e + 1, '/');
         }
         ret = obt_paths_mkdir(c, mode);
 

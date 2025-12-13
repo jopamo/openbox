@@ -339,8 +339,8 @@ static void* convert_text_property(XTextProperty *tprop,
     const gboolean return_single = (max == 1);
     gboolean ok = FALSE;
     gchar **strlist = NULL;
-    gchar *single[1] = { NULL };
-    gchar **retlist = single; /* single is used when max == 1 */
+    gchar *single = NULL;
+    gchar **retlist = &single; /* single is used when max == 1 */
     gint i, n_strs;
 
     /* Read each string in the text property and store a pointer to it in
