@@ -16,6 +16,20 @@
    See the COPYING file for a copy of the GNU General Public License.
 */
 
+/* Pull in the system signal.h before our wrapper so the real APIs stay
+   available even though this header shadows the path. */
+#if defined(__has_include_next)
+#if __has_include_next(<signal.h>)
+#include_next <signal.h>
+#else
+#error "system <signal.h> not found when including obt/signal.h"
+#endif
+#elif defined(__GNUC__) || defined(__clang__)
+#include_next <signal.h>
+#else
+#error "Obt signal wrapper requires #include_next support"
+#endif
+
 #ifndef __obt_signal_h
 #define __obt_signal_h
 

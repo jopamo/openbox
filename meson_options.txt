@@ -1,0 +1,24 @@
+option('startup_notification', type: 'feature', value: 'auto',
+       description: 'Enable libstartup-notification support')
+option('xcursor', type: 'feature', value: 'auto',
+       description: 'Enable Xcursor support')
+option('imlib2', type: 'feature', value: 'auto',
+       description: 'Enable Imlib2 for icon loading')
+option('librsvg', type: 'feature', value: 'auto',
+       description: 'Enable librsvg for SVG icon loading')
+option('xkb', type: 'feature', value: 'auto',
+       description: 'Enable XKB extension support')
+option('xrandr', type: 'feature', value: 'auto',
+       description: 'Enable XRandR extension support')
+option('xinerama', type: 'feature', value: 'auto',
+       description: 'Enable Xinerama extension support')
+option('xshape', type: 'feature', value: 'auto',
+       description: 'Enable XShape extension support')
+option('xsync', type: 'feature', value: 'auto',
+       description: 'Enable XSync extension support')
+option('session_management', type: 'feature', value: 'auto',
+       description: 'Enable X11 session management (libSM/libICE)')
+option('rendertest', type: 'boolean', value: false,
+       description: 'Build the obrender/rendertest diagnostic tool')
+option('default_theme', type: 'string', value: 'Clearlooks',
+       description: 'Default Openbox theme compiled into libobrender')
