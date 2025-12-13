@@ -1620,7 +1620,7 @@ Rect* screen_area(guint desktop, guint head, Rect *search)
         if (head == SCREEN_AREA_ALL_MONITORS) h_idx = screen_num_monitors;
 
         if (monitor_area_cache[d_idx][h_idx].width > 0) {
-            return g_memdup(&monitor_area_cache[d_idx][h_idx], sizeof(Rect));
+            return g_memdup2(&monitor_area_cache[d_idx][h_idx], sizeof(Rect));
         }
     }
 

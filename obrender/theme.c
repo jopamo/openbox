@@ -1441,9 +1441,10 @@ static void set_default_appearance(RrAppearance *a)
 static RrPixel32* read_c_image(gint width, gint height, const guint8 *data)
 {
     RrPixel32 *im, *p;
+    const gsize data_size = (gsize)width * (gsize)height * sizeof(RrPixel32);
     gint i;
 
-    p = im = g_memdup(data, width * height * sizeof(RrPixel32));
+    p = im = g_memdup2(data, data_size);
 
     for (i = 0; i < width * height; ++i) {
         guchar a = ((*p >> 24) & 0xff);

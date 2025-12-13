@@ -24,12 +24,13 @@
 RrPixmapMask *RrPixmapMaskNew(const RrInstance *inst,
                               gint w, gint h, const gchar *data)
 {
+    const gsize data_size = ((gsize)(w + 7) / 8) * (gsize)h;
     RrPixmapMask *m = g_slice_new(RrPixmapMask);
     m->inst = inst;
     m->width = w;
     m->height = h;
     /* round up to nearest byte */
-    m->data = g_memdup(data, (w + 7) / 8 * h);
+    m->data = g_memdup2(data, data_size);
     m->mask = XCreateBitmapFromData(RrDisplay(inst), RrRootWindow(inst),
                                     data, w, h);
     return m;
@@ -70,12 +71,13 @@ void RrPixmapMaskDraw(Pixmap p, const RrTextureMask *m, const RrRect *area)
 
 RrPixmapMask *RrPixmapMaskCopy(const RrPixmapMask *src)
 {
+    const gsize data_size = ((gsize)(src->width + 7) / 8) * (gsize)src->height;
     RrPixmapMask *m = g_slice_new(RrPixmapMask);
     m->inst = src->inst;
     m->width = src->width;
     m->height = src->height;
     /* round up to nearest byte */
-    m->data = g_memdup(src->data, (src->width + 7) / 8 * src->height);
+    m->data = g_memdup2(src->data, data_size);
     m->mask = XCreateBitmapFromData(RrDisplay(m->inst), RrRootWindow(m->inst),
                                     m->data, m->width, m->height);
     return m;

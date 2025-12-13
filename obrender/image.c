@@ -71,9 +71,10 @@ static void RrImagePicInit(RrImagePic *pic, gint w, gint h, RrPixel32 *data)
 static RrImagePic* RrImagePicNew(gint w, gint h, RrPixel32 *data)
 {
     RrImagePic *pic;
+    const gsize data_size = (gsize)w * (gsize)h * sizeof(RrPixel32);
 
     pic = g_slice_new(RrImagePic);
-    RrImagePicInit(pic, w, h, g_memdup(data, w*h*sizeof(RrPixel32)));
+    RrImagePicInit(pic, w, h, g_memdup2(data, data_size));
     return pic;
 }
 
