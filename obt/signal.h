@@ -18,6 +18,14 @@
 
 /* Pull in the system signal.h before our wrapper so the real APIs stay
    available even though this header shadows the path. */
+#if defined(__clang__)
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wgnu-include-next"
+#pragma clang diagnostic ignored "-Winclude-next-absolute-path"
+#elif defined(__GNUC__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wpedantic"
+#endif
 #if defined(__has_include_next)
 #if __has_include_next(<signal.h>)
 #include_next <signal.h>
@@ -28,6 +36,11 @@
 #include_next <signal.h>
 #else
 #error "Obt signal wrapper requires #include_next support"
+#endif
+#if defined(__clang__)
+#pragma clang diagnostic pop
+#elif defined(__GNUC__)
+#pragma GCC diagnostic pop
 #endif
 
 #ifndef __obt_signal_h

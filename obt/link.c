@@ -58,6 +58,7 @@ struct _ObtLink {
             gchar *addr;
         } url;
         struct _ObtLinkDir {
+            gchar _unused;
         } dir;
     } d;
 };

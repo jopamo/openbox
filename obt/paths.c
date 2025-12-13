@@ -104,17 +104,12 @@ int gid_cmp(const void *va, const void *vb)
 
 static void find_uid_gid(uid_t *u, gid_t **g, guint *n)
 {
-    struct passwd *pw;
-    const gchar *name;
-    struct group *gr;
-
     gid_t gmain;
     gboolean maininc;
-    int i;
+    guint i;
 
     *u = getuid();
-    pw = getpwuid(*u);
-    name = pw->pw_name;
+    getpwuid(*u);
 
     gmain = getgid();
 

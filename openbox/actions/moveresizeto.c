@@ -119,6 +119,7 @@ static gboolean run_func(ObActionsData *data, gpointer options)
             mon = (cmon == 0) ? (screen_num_monitors - 1) : (cmon - 1); break;
         default:
             /* desktop specified by number */
+            break;
         }
 
         area = screen_area(c->desktop, mon, NULL);

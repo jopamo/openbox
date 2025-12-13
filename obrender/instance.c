@@ -64,7 +64,9 @@ RrInstance* RrInstanceNew (Display *display, gint screen)
     definst->depth = DefaultDepth(display, screen);
     definst->visual = DefaultVisual(display, screen);
     definst->colormap = DefaultColormap(display, screen);
+    G_GNUC_BEGIN_IGNORE_DEPRECATIONS
     definst->pango = pango_xft_get_context(display, screen);
+    G_GNUC_END_IGNORE_DEPRECATIONS
 
     definst->pseudo_colors = NULL;
 

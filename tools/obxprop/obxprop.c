@@ -130,7 +130,6 @@ gchar* read_strings(gchar *val, guint n, gboolean utf8)
     GSList *strs = NULL, *it;
     GString *ret;
     gchar *p;
-    guint i;
 
     p = val;
     while (p < val + n) {
@@ -139,7 +138,7 @@ gchar* read_strings(gchar *val, guint n, gboolean utf8)
     }
 
     ret = NULL;
-    for (i = 0, it = strs; it; ++i, it = g_slist_next(it)) {
+    for (it = strs; it; it = g_slist_next(it)) {
         char *data;
 
         if (utf8) {

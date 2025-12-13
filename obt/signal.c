@@ -76,10 +76,12 @@ static const gint core_signals[] =
 #define NUM_CORE_SIGNALS (gint)(sizeof(core_signals) / sizeof(core_signals[0]))
 
 static GSourceFuncs source_funcs = {
-    signal_prepare,
-    signal_check,
-    signal_occurred,
-    NULL
+    .prepare = signal_prepare,
+    .check = signal_check,
+    .dispatch = signal_occurred,
+    .finalize = NULL,
+    .closure_callback = NULL,
+    .closure_marshal = NULL
 };
 static GSource *gsource = NULL;
 static guint listeners = 0; /* a ref count for the signal listener */
