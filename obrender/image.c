@@ -27,8 +27,10 @@
 #ifdef USE_LIBRSVG
 #include <cairo.h>
 #include <librsvg/rsvg.h>
+#include <librsvg/rsvg-cairo.h>
 #endif
 
+#include <math.h>
 #include <glib.h>
 
 #define FRACTION        12
@@ -541,29 +543,63 @@ RsvgLoader* LoadWithRsvg(gchar *path,
 {
     RsvgLoader *loader = g_slice_new0(RsvgLoader);
 
-    if (!(loader->handle = rsvg_handle_new_from_file(path, NULL))) {
+    GError *error = NULL;
+
+    loader->handle = rsvg_handle_new_from_file(path, &error);
+    if (!loader->handle) {
+        g_clear_error(&error);
         DestroyRsvgLoader(loader);
         return NULL;
     }
 
-    if (!rsvg_handle_close(loader->handle, NULL)) {
+    gdouble svg_width = 0.0;
+    gdouble svg_height = 0.0;
+    if (!rsvg_handle_get_intrinsic_size_in_pixels(loader->handle,
+                                                  &svg_width,
+                                                  &svg_height)) {
+        gboolean has_viewbox = FALSE;
+        RsvgRectangle viewbox = {0};
+        RsvgLength width_length = {0};
+        RsvgLength height_length = {0};
+        gboolean has_width = FALSE;
+        gboolean has_height = FALSE;
+
+        rsvg_handle_get_intrinsic_dimensions(loader->handle,
+                                             &has_width,
+                                             &width_length,
+                                             &has_height,
+                                             &height_length,
+                                             &has_viewbox,
+                                             &viewbox);
+
+        if (has_viewbox) {
+            svg_width = viewbox.width;
+            svg_height = viewbox.height;
+        } else {
+            DestroyRsvgLoader(loader);
+            return NULL;
+        }
+    }
+
+    *width = (gint)ceil(svg_width);
+    *height = (gint)ceil(svg_height);
+
+    if (*width <= 0 || *height <= 0) {
         DestroyRsvgLoader(loader);
         return NULL;
     }
-
-    RsvgDimensionData dimension_data;
-    rsvg_handle_get_dimensions(loader->handle, &dimension_data);
-    *width = dimension_data.width;
-    *height = dimension_data.height;
 
     loader->surface = cairo_image_surface_create(
         CAIRO_FORMAT_ARGB32, *width, *height);
 
     cairo_t* context = cairo_create(loader->surface);
-    gboolean success = rsvg_handle_render_cairo(loader->handle, context);
+    RsvgRectangle viewport = {0.0, 0.0, (double)*width, (double)*height};
+    gboolean success =
+        rsvg_handle_render_document(loader->handle, context, &viewport, &error);
     cairo_destroy(context);
 
     if (!success) {
+        g_clear_error(&error);
         DestroyRsvgLoader(loader);
         return NULL;
     }
