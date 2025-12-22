@@ -76,6 +76,7 @@ x11_dep = dependency('x11')
 xext_dep = dependency('xext')
 xrender_dep = dependency('xrender')
 xau_dep = dependency('xau')
+m_dep = cc.find_library('m', required: false)
 intl_dep = cc.find_library('intl', required: false)
 
 # Optional dependencies / features

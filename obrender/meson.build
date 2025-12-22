@@ -26,6 +26,7 @@ obrender_deps = [
   glib_dep, xml_dep, pango_dep, pangoxft_dep,
   xft_dep,
   x11_dep, xext_dep, xrender_dep,
+  m_dep,
 ]
 if have_imlib
   obrender_deps += imlib_dep

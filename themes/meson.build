@@ -78,3 +78,15 @@ install_data(
     'Syscrash/openbox-3/themerc',
   ],
   install_dir: syscrash_dir)
+
+oneg4_dir = join_paths(themedir_rel, 'Oneg4', 'openbox-3')
+install_data(
+  [
+    'Oneg4/openbox-3/bullet.xbm',
+    'Oneg4/openbox-3/close.xbm',
+    'Oneg4/openbox-3/desk.xbm',
+    'Oneg4/openbox-3/iconify.xbm',
+    'Oneg4/openbox-3/max.xbm',
+    'Oneg4/openbox-3/themerc',
+  ],
+  install_dir: oneg4_dir)
